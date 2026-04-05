@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 description = "Compare multiple .env files side-by-side to detect config drift"
 license = "MIT"
-repository = "https://github.com/muffin/binturong"
+repository = "https://github.com/iamkorun/binturong"
 keywords = ["dotenv", "config", "diff", "cli", "devops"]
 categories = ["command-line-utilities", "development-tools"]
 
