@@ -236,6 +236,34 @@ mod tests {
     }
 
     #[test]
+    fn test_windows_line_endings() {
+        let (keys, entries) = parse_content("FOO=bar\r\nBAZ=qux\r\n");
+        assert_eq!(entries["FOO"], "bar");
+        assert_eq!(entries["BAZ"], "qux");
+        assert_eq!(keys, vec!["FOO", "BAZ"]);
+    }
+
+    #[test]
+    fn test_multibyte_utf8_values() {
+        let (_, entries) = parse_content("GREETING=こんにちは\nEMOJI=🎉\n");
+        assert_eq!(entries["GREETING"], "こんにちは");
+        assert_eq!(entries["EMOJI"], "🎉");
+    }
+
+    #[test]
+    fn test_value_with_equals_sign() {
+        let (_, entries) = parse_content("URL=postgres://host/db?opt=val\n");
+        assert_eq!(entries["URL"], "postgres://host/db?opt=val");
+    }
+
+    #[test]
+    fn test_only_comments_and_blanks() {
+        let (keys, entries) = parse_content("# just comments\n\n# more comments\n");
+        assert!(keys.is_empty());
+        assert!(entries.is_empty());
+    }
+
+    #[test]
     fn test_parse_file_not_found() {
         let result = parse_env_file(Path::new("/nonexistent/.env.fake"));
         assert!(result.is_err());

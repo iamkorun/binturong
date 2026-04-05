@@ -247,13 +247,33 @@ mod tests {
     }
 
     #[test]
-    fn test_truncate() {
+    fn test_truncate_short_string() {
         assert_eq!(truncate("short", 32), "short");
+    }
+
+    #[test]
+    fn test_truncate_long_string() {
         let long = "a".repeat(40);
         let result = truncate(&long, 32);
-        // '…' is 3 bytes; 31 ASCII chars + 3 bytes for ellipsis = 34 bytes max
-        assert!(result.len() <= 34, "len was {}", result.len());
         assert!(result.ends_with('…'));
+        assert_eq!(result.chars().count(), 32); // 31 chars + ellipsis
+    }
+
+    #[test]
+    fn test_truncate_multibyte_utf8() {
+        // Each Japanese char is 3 bytes; byte-slicing would panic
+        let japanese = "あいうえおかきくけこさしすせそたちつてと";
+        let result = truncate(&japanese, 10);
+        assert!(result.ends_with('…'));
+        assert_eq!(result.chars().count(), 10);
+    }
+
+    #[test]
+    fn test_truncate_emoji() {
+        let emojis = "🎉🎊🎈🎁🎂🎃🎄🎅🎆🎇🎋🎍🎎🎏🎐🎑🎒🎓🎠🎡";
+        let result = truncate(&emojis, 5);
+        assert!(result.ends_with('…'));
+        assert_eq!(result.chars().count(), 5);
     }
 
     #[test]
