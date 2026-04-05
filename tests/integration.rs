@@ -297,3 +297,76 @@ fn test_version_flag() {
     assert!(stdout.contains("binturong"));
     assert_eq!(output.status.code(), Some(0));
 }
+
+#[test]
+fn test_help_flag() {
+    let output = Command::new(bin_path())
+        .arg("--help")
+        .output()
+        .unwrap();
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("drifted across environments"));
+    assert!(stdout.contains("--diff"));
+    assert!(stdout.contains("--values"));
+    assert!(stdout.contains("--quiet"));
+    assert!(stdout.contains("--verbose"));
+    assert_eq!(output.status.code(), Some(0));
+}
+
+#[test]
+fn test_large_number_of_keys() {
+    let tmp = TempDir::new().unwrap();
+    let mut content_a = String::new();
+    let mut content_b = String::new();
+    for i in 0..100 {
+        content_a.push_str(&format!("KEY_{i}=value_{i}\n"));
+        if i % 10 == 0 {
+            // Skip every 10th key in file b to create drift
+            continue;
+        }
+        content_b.push_str(&format!("KEY_{i}=value_{i}\n"));
+    }
+    let a = create_env_file(&tmp, ".env", &content_a);
+    let b = create_env_file(&tmp, ".env.prod", &content_b);
+
+    let output = Command::new(bin_path())
+        .args([a.to_str().unwrap(), b.to_str().unwrap()])
+        .output()
+        .unwrap();
+
+    assert_eq!(output.status.code(), Some(1));
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("KEY_0")); // drifted key
+    assert!(stdout.contains("missing"));
+}
+
+#[test]
+fn test_diff_and_quiet_combined() {
+    let tmp = TempDir::new().unwrap();
+    let a = create_env_file(&tmp, ".env", "FOO=a\n");
+    let b = create_env_file(&tmp, ".env.local", "FOO=b\n");
+
+    let output = Command::new(bin_path())
+        .args(["--diff", "--quiet", a.to_str().unwrap(), b.to_str().unwrap()])
+        .output()
+        .unwrap();
+
+    // Quiet takes precedence — no output
+    assert!(output.stdout.is_empty());
+    assert_eq!(output.status.code(), Some(1));
+}
+
+#[test]
+fn test_values_with_special_characters() {
+    let tmp = TempDir::new().unwrap();
+    let a = create_env_file(&tmp, ".env", "URL=\"postgres://user:p@ss@host/db?opt=1&foo=bar\"\n");
+    let b = create_env_file(&tmp, ".env.local", "URL=\"postgres://user:p@ss@host/db?opt=1&foo=bar\"\n");
+
+    let output = Command::new(bin_path())
+        .args([a.to_str().unwrap(), b.to_str().unwrap()])
+        .output()
+        .unwrap();
+
+    assert_eq!(output.status.code(), Some(0));
+}
