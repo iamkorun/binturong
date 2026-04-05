@@ -21,6 +21,7 @@ impl EnvFile {
             .unwrap_or_else(|| self.path.display().to_string())
     }
 
+    #[allow(dead_code)]
     pub fn get(&self, key: &str) -> Option<&str> {
         self.entries.get(key).map(|s| s.as_str())
     }

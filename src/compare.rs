@@ -13,6 +13,7 @@ pub enum KeyStatus {
 }
 
 impl KeyStatus {
+    #[allow(dead_code)]
     pub fn is_present(&self) -> bool {
         !matches!(self, KeyStatus::Missing)
     }
@@ -33,6 +34,7 @@ pub struct KeyRow {
 pub struct DriftReport {
     pub files: Vec<EnvFile>,
     /// All keys seen across all files, sorted alphabetically.
+    #[allow(dead_code)]
     pub all_keys: Vec<String>,
     /// One row per key.
     pub rows: Vec<KeyRow>,
