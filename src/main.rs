@@ -46,7 +46,14 @@ fn main() {
     let cli = Cli::parse();
 
     let files: Vec<PathBuf> = if cli.files.is_empty() {
-        match discovery::discover_env_files(&std::env::current_dir().unwrap_or_default()) {
+        let cwd = match std::env::current_dir() {
+            Ok(d) => d,
+            Err(e) => {
+                eprintln!("error: cannot access current directory: {e}");
+                process::exit(2);
+            }
+        };
+        match discovery::discover_env_files(&cwd) {
             Ok(f) => f,
             Err(e) => {
                 eprintln!("error: {e}");
