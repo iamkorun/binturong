@@ -18,11 +18,16 @@ pub fn render_table(report: &DriftReport, diff_only: bool, show_values: bool, ve
     };
 
     if rows.is_empty() {
+        let key_count = report.rows.len();
+        let file_count = report.files.len();
         return format!(
-            "{} All {} keys are in sync across {} files.",
+            "{} All {} key{} {} in sync across {} file{}.",
             "✓".green().bold(),
-            report.rows.len(),
-            report.files.len()
+            key_count,
+            if key_count == 1 { "" } else { "s" },
+            if key_count == 1 { "is" } else { "are" },
+            file_count,
+            if file_count == 1 { "" } else { "s" },
         );
     }
 
@@ -119,10 +124,11 @@ pub fn render_table(report: &DriftReport, diff_only: bool, show_values: bool, ve
         ));
     } else {
         output.push_str(&format!(
-            "{} All {} key{} are in sync across {} file{}.",
+            "{} All {} key{} {} in sync across {} file{}.",
             "✓".green().bold(),
             total,
             if total == 1 { "" } else { "s" },
+            if total == 1 { "is" } else { "are" },
             file_count,
             if file_count == 1 { "" } else { "s" },
         ));
