@@ -109,12 +109,11 @@ pub fn render_table(report: &DriftReport, diff_only: bool, show_values: bool, ve
         ));
     } else if drift_count > 0 {
         output.push_str(&format!(
-            "{} {} of {} key{} drift{}  ({} file{})",
+            "{} {}/{} key{} drifted  ({} file{})",
             "✗".red().bold(),
             drift_count,
             total,
             if total == 1 { "" } else { "s" },
-            if drift_count == 1 { "" } else { "s" },
             file_count,
             if file_count == 1 { "" } else { "s" },
         ));
