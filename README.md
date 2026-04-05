@@ -3,7 +3,7 @@
 [![Crates.io](https://img.shields.io/crates/v/binturong)](https://crates.io/crates/binturong)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/iamkorun/binturong?style=social)](https://github.com/iamkorun/binturong)
-[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-☕-yellow)](https://buymeacoffee.com/iamkorun)
+  <a href="https://buymeacoffee.com/iamkorun"><img src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?logo=buy-me-a-coffee&logoColor=black" alt="Buy Me a Coffee"></a>
 
 **Spot config drift across your environments before it bites you.**
 
@@ -232,6 +232,6 @@ MIT — see [LICENSE](LICENSE).
 
 ---
 
-[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-☕-yellow)](https://buymeacoffee.com/iamkorun)
-
-If binturong saved you from a production incident, consider buying me a coffee.
+<p align="center">
+  <a href="https://buymeacoffee.com/iamkorun"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me a Coffee" width="200"></a>
+</p>
