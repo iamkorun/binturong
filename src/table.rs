@@ -6,7 +6,12 @@ const MASK: &str = "****";
 const VALUE_MAX_LEN: usize = 32;
 
 /// Render the drift report as a formatted table string.
-pub fn render_table(report: &DriftReport, diff_only: bool, show_values: bool, verbose: bool) -> String {
+pub fn render_table(
+    report: &DriftReport,
+    diff_only: bool,
+    show_values: bool,
+    verbose: bool,
+) -> String {
     if report.files.is_empty() || report.rows.is_empty() {
         return render_empty(report, diff_only, verbose);
     }
@@ -83,10 +88,8 @@ pub fn render_table(report: &DriftReport, diff_only: bool, show_values: bool, ve
                     };
                     Cell::new(symbol).set_alignment(CellAlignment::Center)
                 }
-                KeyStatus::Missing => {
-                    Cell::new("✗ missing".red().bold().to_string())
-                        .set_alignment(CellAlignment::Center)
-                }
+                KeyStatus::Missing => Cell::new("✗ missing".red().bold().to_string())
+                    .set_alignment(CellAlignment::Center),
             };
             cells.push(cell);
         }
@@ -176,8 +179,8 @@ mod tests {
     use super::*;
     use crate::compare::compare_files;
     use crate::parser::parse_content;
-    use std::path::PathBuf;
     use crate::parser::EnvFile;
+    use std::path::PathBuf;
 
     fn make_env_file(path: &str, content: &str) -> EnvFile {
         let (keys, entries) = parse_content(content);
@@ -219,8 +222,14 @@ mod tests {
         // FOO should not appear in a row (it may appear in column headers — that's the filename, not the key)
         // The table rows won't have FOO since it's in sync
         let lines: Vec<&str> = output.lines().collect();
-        let data_rows: Vec<&&str> = lines.iter().filter(|l| l.contains("FOO") && !l.contains("KEY")).collect();
-        assert!(data_rows.is_empty(), "FOO should not appear in diff-only output: {output}");
+        let data_rows: Vec<&&str> = lines
+            .iter()
+            .filter(|l| l.contains("FOO") && !l.contains("KEY"))
+            .collect();
+        assert!(
+            data_rows.is_empty(),
+            "FOO should not appear in diff-only output: {output}"
+        );
     }
 
     #[test]
@@ -263,7 +272,7 @@ mod tests {
     fn test_truncate_multibyte_utf8() {
         // Each Japanese char is 3 bytes; byte-slicing would panic
         let japanese = "あいうえおかきくけこさしすせそたちつてと";
-        let result = truncate(&japanese, 10);
+        let result = truncate(japanese, 10);
         assert!(result.ends_with('…'));
         assert_eq!(result.chars().count(), 10);
     }
@@ -271,7 +280,7 @@ mod tests {
     #[test]
     fn test_truncate_emoji() {
         let emojis = "🎉🎊🎈🎁🎂🎃🎄🎅🎆🎇🎋🎍🎎🎏🎐🎑🎒🎓🎠🎡";
-        let result = truncate(&emojis, 5);
+        let result = truncate(emojis, 5);
         assert!(result.ends_with('…'));
         assert_eq!(result.chars().count(), 5);
     }

@@ -70,13 +70,13 @@ fn main() {
     }
 
     if files.len() < 2 {
-        eprintln!(
-            "error: at least 2 files are required for comparison (found: {})",
-            files
-                .first()
-                .map(|p| p.display().to_string())
-                .unwrap_or_default()
-        );
+        match files.first() {
+            Some(p) => eprintln!(
+                "error: at least 2 files are required for comparison (found 1: {})",
+                p.display()
+            ),
+            None => eprintln!("error: at least 2 files are required for comparison (found 0)"),
+        }
         process::exit(2);
     }
 

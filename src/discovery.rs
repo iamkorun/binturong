@@ -16,7 +16,11 @@ pub fn discover_env_files(dir: &Path) -> Result<Vec<PathBuf>, io::Error> {
 
             // Follow symlinks to check if they point to a file
             let is_file = if file_type.is_symlink() {
-                entry.path().metadata().map(|m| m.is_file()).unwrap_or(false)
+                entry
+                    .path()
+                    .metadata()
+                    .map(|m| m.is_file())
+                    .unwrap_or(false)
             } else {
                 file_type.is_file()
             };

@@ -7,7 +7,7 @@ use tempfile::TempDir;
 fn bin_path() -> std::path::PathBuf {
     let mut path = std::env::current_exe().unwrap();
     path.pop(); // remove test binary name
-    // When tests run from target/debug/deps, the binary is at target/debug/
+                // When tests run from target/debug/deps, the binary is at target/debug/
     if path.ends_with("deps") {
         path.pop();
     }
@@ -104,8 +104,14 @@ fn test_output_masks_values_by_default() {
         .unwrap();
 
     let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(!stdout.contains("supersecretvalue"), "value should be masked by default");
-    assert!(!stdout.contains("othersecret"), "value should be masked by default");
+    assert!(
+        !stdout.contains("supersecretvalue"),
+        "value should be masked by default"
+    );
+    assert!(
+        !stdout.contains("othersecret"),
+        "value should be masked by default"
+    );
     assert!(stdout.contains("****"), "should show mask symbol");
 }
 
@@ -121,7 +127,10 @@ fn test_values_flag_shows_actual_values() {
         .unwrap();
 
     let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(stdout.contains("actualvalue"), "--values should show actual values");
+    assert!(
+        stdout.contains("actualvalue"),
+        "--values should show actual values"
+    );
 }
 
 #[test]
@@ -136,14 +145,20 @@ fn test_diff_flag_hides_in_sync_keys() {
         .unwrap();
 
     let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(stdout.contains("DRIFTED"), "--diff should show drifted keys");
+    assert!(
+        stdout.contains("DRIFTED"),
+        "--diff should show drifted keys"
+    );
     // STABLE should not appear in table rows (it is in sync)
     // Check that "STABLE" doesn't appear in any data rows
     let stable_in_data = stdout
         .lines()
         .filter(|l| l.contains("STABLE") && !l.contains("KEY"))
         .count();
-    assert_eq!(stable_in_data, 0, "STABLE should not appear in --diff output: {stdout}");
+    assert_eq!(
+        stable_in_data, 0,
+        "STABLE should not appear in --diff output: {stdout}"
+    );
 }
 
 #[test]
@@ -157,7 +172,10 @@ fn test_quiet_flag_no_output_on_drift() {
         .output()
         .unwrap();
 
-    assert!(output.stdout.is_empty(), "quiet mode should produce no stdout");
+    assert!(
+        output.stdout.is_empty(),
+        "quiet mode should produce no stdout"
+    );
     // exit code should still be 1
     assert_eq!(output.status.code(), Some(1));
 }
@@ -174,7 +192,10 @@ fn test_output_shows_missing_indicator() {
         .unwrap();
 
     let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(stdout.contains("missing"), "should show 'missing' for absent key");
+    assert!(
+        stdout.contains("missing"),
+        "should show 'missing' for absent key"
+    );
 }
 
 // ─── Auto-discovery tests ────────────────────────────────────────────────────
@@ -288,10 +309,7 @@ fn test_verbose_flag_lists_drifted_keys() {
 
 #[test]
 fn test_version_flag() {
-    let output = Command::new(bin_path())
-        .arg("--version")
-        .output()
-        .unwrap();
+    let output = Command::new(bin_path()).arg("--version").output().unwrap();
 
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(stdout.contains("binturong"));
@@ -300,10 +318,7 @@ fn test_version_flag() {
 
 #[test]
 fn test_help_flag() {
-    let output = Command::new(bin_path())
-        .arg("--help")
-        .output()
-        .unwrap();
+    let output = Command::new(bin_path()).arg("--help").output().unwrap();
 
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(stdout.contains("drifted across environments"));
@@ -348,7 +363,12 @@ fn test_diff_and_quiet_combined() {
     let b = create_env_file(&tmp, ".env.local", "FOO=b\n");
 
     let output = Command::new(bin_path())
-        .args(["--diff", "--quiet", a.to_str().unwrap(), b.to_str().unwrap()])
+        .args([
+            "--diff",
+            "--quiet",
+            a.to_str().unwrap(),
+            b.to_str().unwrap(),
+        ])
         .output()
         .unwrap();
 
@@ -360,8 +380,16 @@ fn test_diff_and_quiet_combined() {
 #[test]
 fn test_values_with_special_characters() {
     let tmp = TempDir::new().unwrap();
-    let a = create_env_file(&tmp, ".env", "URL=\"postgres://user:p@ss@host/db?opt=1&foo=bar\"\n");
-    let b = create_env_file(&tmp, ".env.local", "URL=\"postgres://user:p@ss@host/db?opt=1&foo=bar\"\n");
+    let a = create_env_file(
+        &tmp,
+        ".env",
+        "URL=\"postgres://user:p@ss@host/db?opt=1&foo=bar\"\n",
+    );
+    let b = create_env_file(
+        &tmp,
+        ".env.local",
+        "URL=\"postgres://user:p@ss@host/db?opt=1&foo=bar\"\n",
+    );
 
     let output = Command::new(bin_path())
         .args([a.to_str().unwrap(), b.to_str().unwrap()])
