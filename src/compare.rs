@@ -240,4 +240,27 @@ mod tests {
         assert_eq!(extra_row.statuses[0], KeyStatus::Present("y".to_string()));
         assert_eq!(extra_row.statuses[1], KeyStatus::Missing);
     }
+
+    #[test]
+    fn test_key_status_is_present() {
+        assert!(KeyStatus::Present("v".to_string()).is_present());
+        assert!(KeyStatus::Empty.is_present());
+        assert!(!KeyStatus::Missing.is_present());
+    }
+
+    #[test]
+    fn test_all_keys_aggregates_across_files() {
+        let a = make_env_file(".env", "FOO=1\nBAR=2\n");
+        let b = make_env_file(".env.local", "BAR=2\nBAZ=3\n");
+        let report = compare_files(&[a, b]);
+        assert_eq!(report.all_keys, vec!["BAR", "BAZ", "FOO"]);
+    }
+
+    #[test]
+    fn test_no_files_produces_empty_report() {
+        let report = compare_files(&[]);
+        assert!(!report.has_drift());
+        assert!(report.rows.is_empty());
+        assert!(report.all_keys.is_empty());
+    }
 }

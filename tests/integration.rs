@@ -398,3 +398,87 @@ fn test_values_with_special_characters() {
 
     assert_eq!(output.status.code(), Some(0));
 }
+
+// ─── Stderr error message tests ──────────────────────────────────────────────
+
+#[test]
+fn test_one_file_error_includes_path() {
+    let tmp = TempDir::new().unwrap();
+    let a = create_env_file(&tmp, ".env", "FOO=bar\n");
+
+    let output = Command::new(bin_path())
+        .arg(a.to_str().unwrap())
+        .output()
+        .unwrap();
+
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert_eq!(output.status.code(), Some(2));
+    assert!(stderr.contains("at least 2 files"));
+    assert!(stderr.contains("found 1"));
+    assert!(stderr.contains(a.to_str().unwrap()));
+}
+
+#[test]
+fn test_invalid_utf8_file_reports_error() {
+    let tmp = TempDir::new().unwrap();
+    let a = tmp.path().join(".env");
+    let b = tmp.path().join(".env.local");
+    // Write invalid UTF-8 bytes — these are not valid UTF-8 sequences
+    fs::write(&a, [0xFF, 0xFE, 0xFD, 0xFC]).unwrap();
+    fs::write(&b, "FOO=bar\n").unwrap();
+
+    let output = Command::new(bin_path())
+        .args([a.to_str().unwrap(), b.to_str().unwrap()])
+        .output()
+        .unwrap();
+
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert_eq!(output.status.code(), Some(2));
+    assert!(stderr.contains("error reading"));
+}
+
+#[test]
+fn test_verbose_writes_filenames_to_stderr() {
+    let tmp = TempDir::new().unwrap();
+    let a = create_env_file(&tmp, ".env", "FOO=bar\n");
+    let b = create_env_file(&tmp, ".env.local", "FOO=bar\n");
+
+    let output = Command::new(bin_path())
+        .args(["--verbose", a.to_str().unwrap(), b.to_str().unwrap()])
+        .output()
+        .unwrap();
+
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("comparing 2 files"));
+    assert!(stderr.contains(".env"));
+}
+
+#[test]
+fn test_short_flag_aliases() {
+    let tmp = TempDir::new().unwrap();
+    let a = create_env_file(&tmp, ".env", "FOO=a\nBAR=b\n");
+    let b = create_env_file(&tmp, ".env.local", "FOO=a\nBAR=c\n");
+
+    // -d short flag
+    let output = Command::new(bin_path())
+        .args(["-d", a.to_str().unwrap(), b.to_str().unwrap()])
+        .output()
+        .unwrap();
+    assert_eq!(output.status.code(), Some(1));
+
+    // -q short flag
+    let output = Command::new(bin_path())
+        .args(["-q", a.to_str().unwrap(), b.to_str().unwrap()])
+        .output()
+        .unwrap();
+    assert!(output.stdout.is_empty());
+    assert_eq!(output.status.code(), Some(1));
+
+    // -v short flag
+    let output = Command::new(bin_path())
+        .args(["-v", a.to_str().unwrap(), b.to_str().unwrap()])
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("Drifted keys:"));
+}
