@@ -117,7 +117,7 @@ pub fn render_table(
         ));
     } else if drift_count > 0 {
         output.push_str(&format!(
-            "{} {}/{} key{} drifted  ({} file{})",
+            "{} {}/{} key{} drifted across {} file{}",
             "✗".red().bold(),
             drift_count,
             total,
@@ -125,6 +125,13 @@ pub fn render_table(
             file_count,
             if file_count == 1 { "" } else { "s" },
         ));
+        if !show_values {
+            output.push_str(&format!(
+                "\n{} re-run with {} to inspect drifted values",
+                "→".dimmed(),
+                "--values".bold(),
+            ));
+        }
     } else {
         output.push_str(&format!(
             "{} All {} key{} {} in sync across {} file{}.",
