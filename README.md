@@ -1,9 +1,10 @@
 # 🐻 binturong
 
+[![CI](https://github.com/iamkorun/binturong/actions/workflows/ci.yml/badge.svg)](https://github.com/iamkorun/binturong/actions/workflows/ci.yml)
 [![Crates.io](https://img.shields.io/crates/v/binturong)](https://crates.io/crates/binturong)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/iamkorun/binturong?style=social)](https://github.com/iamkorun/binturong)
-  <a href="https://buymeacoffee.com/iamkorun"><img src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?logo=buy-me-a-coffee&logoColor=black" alt="Buy Me a Coffee"></a>
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/iamkorun)
 
 **Spot config drift across your environments before it bites you.**
 
@@ -38,7 +39,8 @@ $ binturong .env .env.staging .env.production
 │ STRIPE_SECRET_KEY   │ ✓ ****    │ ○ (empty)    │ ✓ ****             │
 └─────────────────────┴───────────┴──────────────┴────────────────────┘
 
-✗ 3/5 keys drifted  (3 files)
+✗ 3/5 keys drifted across 3 files
+→ re-run with --values to inspect drifted values
 ```
 
 Exit code 1 means drift detected. Pipe it into CI and sleep better.
@@ -109,7 +111,8 @@ $ binturong --diff
 │ STRIPE_SECRET_KEY │ ✓ ****    │ ○ (empty)    │ ✓ ****             │
 └───────────────────┴───────────┴──────────────┴────────────────────┘
 
-✗ 3/5 keys drifted  (3 files)
+✗ 3/5 keys drifted across 3 files
+→ re-run with --values to inspect drifted values
 ```
 
 ### Reveal actual values (`--values`)
