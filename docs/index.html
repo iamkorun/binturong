@@ -363,8 +363,8 @@
   <!-- ── Features: BENTO grid (asymmetric, NOT a 4-col equal row) ── -->
   <section class="px-4 lg:px-8 pb-24">
     <div class="max-w-5xl mx-auto">
-      <h2 class="text-3xl lg:text-4xl font-bold tracking-tight mb-3 reveal">Built for the way you actually work.</h2>
-      <p class="text-muted text-base mb-10 max-w-[60ch] reveal">From local dev to production. From two files to twenty. One command, one view.</p>
+      <h2 class="text-3xl lg:text-4xl font-bold tracking-tight mb-3 reveal">Built for every stage, every env.</h2>
+      <p class="text-muted text-base mb-10 max-w-[60ch] reveal">Two files or twenty. Local, staging, production, preview branches. One command, one table, one answer.</p>
 
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 stagger" style="grid-auto-rows: minmax(220px, auto);">
 
@@ -380,8 +380,8 @@
               </svg>
             </div>
             <div>
-              <h3 class="font-semibold text-lg mb-2 text-snow">Matrix view</h3>
-              <p class="text-muted text-sm leading-relaxed max-w-[52ch]">All files side-by-side. All keys in one table. Stop juggling <code class="font-mono text-snow">diff</code> outputs between two terminals — read drift like a spreadsheet.</p>
+              <h3 class="font-semibold text-lg mb-2 text-snow">Read drift like a spreadsheet</h3>
+              <p class="text-muted text-sm leading-relaxed max-w-[52ch]">Every file is a column. Every key is a row. Stop juggling <code class="font-mono text-snow">diff</code> outputs between two terminals — scan an entire environment matrix in one glance.</p>
             </div>
           </div>
           <div class="mt-6 font-mono text-[11px] text-muted grid grid-cols-4 gap-2">
@@ -401,8 +401,8 @@
                 <line x1="21" y1="21" x2="16.65" y2="16.65"/>
               </svg>
             </div>
-            <h3 class="font-semibold text-base mb-2 text-snow">Auto-discovery</h3>
-            <p class="text-muted text-sm leading-relaxed">Run <code class="font-mono text-snow">binturong</code> with zero arguments. It finds every <code class="font-mono text-snow">.env*</code> file in your current directory.</p>
+            <h3 class="font-semibold text-base mb-2 text-snow">Zero-argument mode</h3>
+            <p class="text-muted text-sm leading-relaxed">Run <code class="font-mono text-snow">binturong</code> with no flags. It finds every <code class="font-mono text-snow">.env*</code> file in your working directory and compares them.</p>
           </div>
           <div class="mt-5 font-mono text-[11px] text-muted">
             <span class="text-terminal-green">$</span> binturong<br/>
@@ -421,8 +421,8 @@
                 <line x1="1" y1="1" x2="23" y2="23"/>
               </svg>
             </div>
-            <h3 class="font-semibold text-base mb-2 text-snow">Value masking</h3>
-            <p class="text-muted text-sm leading-relaxed">Values hide behind <code class="font-mono text-snow">****</code> by default. Screen-share without leaking secrets.</p>
+            <h3 class="font-semibold text-base mb-2 text-snow">Masked by default</h3>
+            <p class="text-muted text-sm leading-relaxed">Values hide behind <code class="font-mono text-snow">****</code>. Screen-share a drift report without leaking secrets. Opt in to values with <code class="font-mono text-snow">--values</code>.</p>
           </div>
         </div>
 
@@ -435,8 +435,8 @@
               </svg>
             </div>
             <div>
-              <h3 class="font-semibold text-lg mb-2 text-snow">CI-friendly</h3>
-              <p class="text-muted text-sm leading-relaxed max-w-[52ch]">Exit code <code class="font-mono text-snow">1</code> on drift, <code class="font-mono text-snow">0</code> on match. Drop it straight into a GitHub Action, a pre-commit hook, or a bash script.</p>
+              <h3 class="font-semibold text-lg mb-2 text-snow">Fails loud in CI</h3>
+              <p class="text-muted text-sm leading-relaxed max-w-[52ch]">Exit code <code class="font-mono text-snow">1</code> on drift, <code class="font-mono text-snow">0</code> on match. Drop it into a GitHub Action, a pre-commit hook, or a bash script — your pipeline breaks before prod does.</p>
             </div>
           </div>
           <div class="mt-6 font-mono text-[11px] text-muted bg-surface-2 border border-hairline rounded-lg p-3 leading-relaxed">
