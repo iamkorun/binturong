@@ -5,22 +5,31 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>binturong — Spot config drift across your environments</title>
   <meta name="description" content="binturong is a Rust CLI that compares multiple .env files side-by-side in a matrix table. Catch config drift across staging, production, and beyond." />
+  <link rel="canonical" href="https://iamkorun.github.io/binturong/" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='3' y='3' width='7' height='7' rx='1' fill='%2358a6ff'/%3E%3Crect x='14' y='3' width='7' height='7' rx='1' fill='%2358a6ff' opacity='0.55'/%3E%3Crect x='14' y='14' width='7' height='7' rx='1' fill='%2358a6ff' opacity='0.9'/%3E%3Crect x='3' y='14' width='7' height='7' rx='1' fill='%2358a6ff' opacity='0.55'/%3E%3C/svg%3E" />
 
   <!-- Open Graph -->
   <meta property="og:title" content="binturong — Spot config drift across your environments" />
   <meta property="og:description" content="Compare N .env files side-by-side. See which keys are missing, empty, or drifted. CI-friendly exit codes. Zero runtime." />
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://iamkorun.github.io/binturong" />
+  <meta property="og:url" content="https://iamkorun.github.io/binturong/" />
+  <meta property="og:image" content="https://iamkorun.github.io/binturong/og-image.svg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
 
   <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="binturong — Spot config drift across your environments" />
   <meta name="twitter:description" content="Compare N .env files side-by-side in a matrix table. Catch missing keys before they break production." />
+  <meta name="twitter:image" content="https://iamkorun.github.io/binturong/og-image.svg" />
 
+  <!-- Geist + Geist Mono (taste-skill compliant, Inter is banned) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind v3.4.16 (version pinned, not @latest) -->
+  <script src="https://cdn.tailwindcss.com/3.4.16"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -29,14 +38,14 @@
             surface: {
               0: '#070a0f',
               1: '#0d1117',
-              2: '#161b22',
-              3: '#1c2333',
+              2: '#12181f',
+              3: '#1a222d',
               4: '#232d3f',
               5: '#2d3a50',
             },
-            border: { DEFAULT: '#21303f', hover: '#3a4f6a' },
-            accent: { DEFAULT: '#58a6ff', dim: '#388bfd', glow: '#58a6ff22' },
-            muted: '#7d8fa0',
+            hairline: { DEFAULT: '#1f2a37', hover: '#2f4053' },
+            accent: { DEFAULT: '#58a6ff', dim: '#3b82f6', glow: '#58a6ff22' },
+            muted: '#6b7a8c',
             snow: '#e8edf4',
             terminal: {
               bg: '#080c12',
@@ -48,77 +57,99 @@
             },
           },
           fontFamily: {
-            sans: ['Inter', 'system-ui', 'sans-serif'],
-            mono: ['JetBrains Mono', 'Menlo', 'monospace'],
+            sans: ['Geist', 'system-ui', 'sans-serif'],
+            mono: ['Geist Mono', 'Menlo', 'monospace'],
+          },
+          letterSpacing: {
+            tightest: '-0.04em',
           },
         },
       },
     }
   </script>
+
   <style>
-    /* ── Grain overlay ── */
+    /* ── Fixed grain overlay (pointer-events-none — GPU safe) ── */
     body::before {
       content: '';
       position: fixed;
       inset: 0;
       z-index: 9999;
       pointer-events: none;
-      opacity: 0.022;
+      opacity: 0.025;
       background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
       background-repeat: repeat;
       background-size: 180px;
     }
 
-    /* ── Hero glow ── */
-    .hero-glow {
+    /* ── Hero canvas container ── */
+    .hero-canvas-shell {
+      position: relative;
+      aspect-ratio: 1 / 1;
+      max-height: 560px;
+      border-radius: 28px;
+      overflow: hidden;
+      border: 1px solid #1f2a37;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.04),
+        0 20px 60px -20px rgba(88, 166, 255, 0.18),
+        0 40px 120px -40px rgba(0, 0, 0, 0.5);
+    }
+    .hero-canvas-shell::after {
+      content: '';
       position: absolute;
-      top: -100px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 900px;
-      height: 600px;
-      background: radial-gradient(ellipse at center, rgba(88,166,255,0.07) 0%, transparent 70%);
+      inset: 0;
+      border-radius: inherit;
       pointer-events: none;
-      z-index: 0;
+      background: radial-gradient(120% 80% at 50% 110%, rgba(7, 10, 15, 0.6) 0%, transparent 55%);
+    }
+    #hero-canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* ── Hero mobile poster (shown when canvas is hidden) ── */
+    .hero-poster {
+      position: relative;
+      aspect-ratio: 1 / 1;
+      border-radius: 28px;
+      overflow: hidden;
+      border: 1px solid #1f2a37;
+      background:
+        radial-gradient(60% 50% at 30% 30%, #1e3a6b 0%, transparent 60%),
+        radial-gradient(50% 40% at 75% 70%, #274f8a 0%, transparent 60%),
+        linear-gradient(135deg, #0d1117 0%, #070a0f 100%);
     }
 
     /* ── Terminal glow ── */
     .terminal-glow {
       box-shadow:
-        0 0 0 1px #21303f,
-        0 4px 24px rgba(0,0,0,0.6),
-        0 16px 80px rgba(88,166,255,0.05),
-        0 0 120px rgba(88,166,255,0.02);
+        0 0 0 1px #1f2a37,
+        0 4px 24px rgba(0, 0, 0, 0.6),
+        0 16px 80px rgba(88, 166, 255, 0.05);
     }
 
     /* ── Scroll reveal ── */
     .reveal {
       opacity: 0;
       transform: translateY(20px);
-      transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1), transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+      transition:
+        opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+        transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .reveal.visible {
       opacity: 1;
       transform: translateY(0);
     }
-
     .stagger > .reveal:nth-child(1) { transition-delay: 0ms; }
-    .stagger > .reveal:nth-child(2) { transition-delay: 60ms; }
-    .stagger > .reveal:nth-child(3) { transition-delay: 120ms; }
-    .stagger > .reveal:nth-child(4) { transition-delay: 180ms; }
+    .stagger > .reveal:nth-child(2) { transition-delay: 70ms; }
+    .stagger > .reveal:nth-child(3) { transition-delay: 140ms; }
+    .stagger > .reveal:nth-child(4) { transition-delay: 210ms; }
 
-    /* ── Feature card ── */
-    .feature-card {
-      transition: border-color 0.3s ease, box-shadow 0.3s ease;
-    }
-    .feature-card:hover {
-      border-color: #3a4f6a;
-      box-shadow: 0 8px 32px rgba(88,166,255,0.06);
-    }
-
-    /* ── Install box ── */
+    /* ── Install box (left-aligned, matches split hero) ── */
     .install-box {
-      background: linear-gradient(135deg, #0d1117, #161b22);
+      background: linear-gradient(135deg, #0d1117, #12181f);
       position: relative;
     }
     .install-box::before {
@@ -127,11 +158,23 @@
       inset: -1px;
       border-radius: inherit;
       padding: 1px;
-      background: linear-gradient(135deg, #2d3a50, #21303f 50%, #2d3a50);
+      background: linear-gradient(135deg, #2d3a50, #1f2a37 50%, #2d3a50);
       -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
       -webkit-mask-composite: xor;
       mask-composite: exclude;
       pointer-events: none;
+    }
+
+    /* ── Tactile button press ── */
+    .tactile {
+      transition:
+        transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1),
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease;
+    }
+    .tactile:active {
+      transform: translateY(1px) scale(0.98);
     }
 
     /* ── Tab ── */
@@ -145,85 +188,150 @@
 
     /* ── Copy button pulse ── */
     @keyframes copied-pulse {
-      0%   { box-shadow: 0 0 0 0 rgba(88,166,255,0.4); }
-      70%  { box-shadow: 0 0 0 8px rgba(88,166,255,0); }
-      100% { box-shadow: 0 0 0 0 rgba(88,166,255,0); }
+      0%   { box-shadow: 0 0 0 0 rgba(88, 166, 255, 0.4); }
+      70%  { box-shadow: 0 0 0 10px rgba(88, 166, 255, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(88, 166, 255, 0); }
     }
-    .copy-pulse {
-      animation: copied-pulse 0.5s ease-out;
+    .copy-pulse { animation: copied-pulse 0.55s ease-out; }
+
+    /* ── Matrix row highlights ── */
+    .matrix-row-drift   { color: #d29922; }
+    .matrix-row-missing { color: #f85149; }
+    .matrix-row-ok      { color: #3fb950; }
+    .matrix-row-empty   { color: #6b7a8c; }
+
+    /* ── Status breathing dot ── */
+    @keyframes breathe {
+      0%, 100% { opacity: 0.55; transform: scale(1); }
+      50%      { opacity: 1;    transform: scale(1.15); }
+    }
+    .breathe { animation: breathe 2.4s ease-in-out infinite; }
+
+    /* ── Bento card ── */
+    .bento-tile {
+      transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+    }
+    .bento-tile:hover {
+      border-color: #2f4053;
+      box-shadow: 0 8px 32px rgba(88, 166, 255, 0.06);
     }
 
-    /* ── Matrix row highlight ── */
-    .matrix-row-drift {
-      color: #d29922;
-    }
-    .matrix-row-missing {
-      color: #f85149;
-    }
-    .matrix-row-ok {
-      color: #3fb950;
-    }
-    .matrix-row-empty {
-      color: #7d8fa0;
+    @media (prefers-reduced-motion: reduce) {
+      .reveal { opacity: 1; transform: none; transition: none; }
+      .breathe { animation: none; }
     }
   </style>
 </head>
 <body class="bg-surface-0 text-snow font-sans antialiased">
 
   <!-- ── Nav ── -->
-  <nav class="fixed top-0 inset-x-0 z-50 border-b border-border bg-surface-0/80 backdrop-blur-md">
-    <div class="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
-      <span class="font-mono font-semibold text-snow tracking-tight">🐻 binturong</span>
-      <div class="flex items-center gap-4 text-sm text-muted">
+  <nav class="fixed top-0 inset-x-0 z-50 border-b border-hairline bg-surface-0/80 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 lg:px-8 h-14 flex items-center justify-between">
+      <a href="#" class="font-mono font-semibold text-snow tracking-tight text-sm flex items-center gap-2">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-accent" aria-hidden="true">
+          <rect x="3" y="3" width="7" height="7" rx="1"/>
+          <rect x="14" y="3" width="7" height="7" rx="1"/>
+          <rect x="14" y="14" width="7" height="7" rx="1"/>
+          <rect x="3" y="14" width="7" height="7" rx="1"/>
+        </svg>
+        binturong
+      </a>
+      <div class="flex items-center gap-1 sm:gap-2 text-sm text-muted">
         <a href="https://github.com/iamkorun/binturong" target="_blank" rel="noopener"
-           class="hover:text-snow transition-colors">GitHub</a>
+           class="tactile px-3 py-1.5 rounded-lg hover:text-snow text-xs font-mono">GitHub</a>
         <a href="https://crates.io/crates/binturong" target="_blank" rel="noopener"
-           class="hover:text-snow transition-colors">crates.io</a>
+           class="tactile hidden sm:inline-flex px-3 py-1.5 rounded-lg hover:text-snow text-xs font-mono">crates.io</a>
         <a href="https://buymeacoffee.com/iamkorun" target="_blank" rel="noopener"
-           class="px-3 py-1 rounded-full border border-border hover:border-accent hover:text-accent transition-all text-xs">☕ Coffee</a>
+           class="tactile inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-hairline hover:border-accent hover:text-accent text-xs font-mono">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M17 8h1a4 4 0 0 1 0 8h-1"/>
+            <path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V8z"/>
+            <line x1="7" y1="2" x2="7" y2="5"/>
+            <line x1="11" y1="2" x2="11" y2="5"/>
+            <line x1="15" y1="2" x2="15" y2="5"/>
+          </svg>
+          <span class="hidden sm:inline">Coffee</span>
+        </a>
       </div>
     </div>
   </nav>
 
-  <!-- ── Hero ── -->
-  <section class="relative pt-32 pb-20 px-4 overflow-hidden">
-    <div class="hero-glow"></div>
-    <div class="relative z-10 max-w-4xl mx-auto text-center">
+  <!-- ── Hero: asymmetric split-screen ── -->
+  <section class="relative pt-24 lg:pt-28 min-h-[100dvh] overflow-hidden">
+    <div class="max-w-7xl mx-auto px-4 lg:px-8 grid lg:grid-cols-[1.15fr_1fr] gap-10 lg:gap-16 items-center pb-16 lg:pb-24">
 
-      <div class="inline-flex items-center gap-2 px-3 py-1 mb-6 rounded-full bg-surface-2 border border-border text-xs text-muted font-mono">
-        <span class="w-1.5 h-1.5 rounded-full bg-terminal-green animate-pulse"></span>
-        v0.1.0 · written in Rust
+      <!-- Left: content (left-aligned, NOT centered) -->
+      <div class="text-left lg:pr-4">
+        <div class="inline-flex items-center gap-2 px-3 py-1 mb-7 rounded-full bg-surface-2 border border-hairline text-[11px] text-muted font-mono">
+          <span class="w-1.5 h-1.5 rounded-full bg-terminal-green breathe"></span>
+          v0.1.0 · Rust · 47.2 KB single binary
+        </div>
+
+        <h1 class="text-5xl sm:text-6xl lg:text-7xl font-black tracking-tightest leading-[0.95] mb-6">
+          <span class="text-snow">Spot config drift</span><br/>
+          <span class="text-accent">before it bites.</span>
+        </h1>
+
+        <p class="text-base lg:text-lg text-muted max-w-[56ch] mb-9 leading-relaxed">
+          binturong diffs <code class="font-mono text-snow bg-surface-2 px-1.5 py-0.5 rounded border border-hairline text-sm">.env</code> files side-by-side in a single matrix table.
+          See which keys are missing, empty, or drifted — across every environment, in one glance.
+        </p>
+
+        <!-- Install block: tactile, click-to-copy -->
+        <div class="install-box max-w-md rounded-xl px-5 py-4 mb-4 flex items-center justify-between gap-4">
+          <span class="font-mono text-accent text-sm sm:text-base select-all whitespace-nowrap overflow-x-auto">cargo install binturong</span>
+          <button id="copy-btn"
+                  onclick="copyInstall()"
+                  class="tactile shrink-0 px-3 py-1.5 rounded-lg bg-surface-3 border border-hairline text-[11px] text-muted hover:text-snow hover:border-accent font-mono">
+            copy
+          </button>
+        </div>
+
+        <!-- Dual CTA row -->
+        <div class="flex flex-wrap items-center gap-3">
+          <a href="#install"
+             class="tactile inline-flex items-center gap-2 px-5 py-3 rounded-lg bg-accent text-surface-0 font-semibold text-sm hover:bg-accent-dim">
+            Install in 30 seconds
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="5" y1="12" x2="19" y2="12"/>
+              <polyline points="12 5 19 12 12 19"/>
+            </svg>
+          </a>
+          <a href="https://github.com/iamkorun/binturong"
+             target="_blank" rel="noopener"
+             class="tactile inline-flex items-center gap-2 px-5 py-3 rounded-lg border border-hairline text-muted hover:text-snow hover:border-hairline-hover font-medium text-sm">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>
+            </svg>
+            Source
+          </a>
+        </div>
+
+        <p class="mt-5 text-xs text-muted">Requires <a href="https://rustup.rs" target="_blank" rel="noopener" class="text-accent hover:underline">Rust</a> · No runtime · Single binary</p>
       </div>
 
-      <h1 class="text-5xl sm:text-6xl font-black tracking-tight leading-none mb-5">
-        <span class="text-snow">Spot config drift</span><br/>
-        <span class="text-accent">before it bites you.</span>
-      </h1>
-
-      <p class="text-lg text-muted max-w-2xl mx-auto mb-10 leading-relaxed">
-        binturong compares your <code class="font-mono text-snow bg-surface-2 px-1.5 py-0.5 rounded">.env</code> files side-by-side in a matrix table.
-        See which keys are missing, empty, or drifted — across every environment at once.
-      </p>
-
-      <!-- Install box -->
-      <div class="install-box max-w-lg mx-auto rounded-xl px-6 py-4 mb-4 flex items-center justify-between gap-4">
-        <span class="font-mono text-accent text-sm sm:text-base select-all">cargo install binturong</span>
-        <button id="copy-btn"
-                onclick="copyInstall()"
-                class="shrink-0 px-3 py-1.5 rounded-lg bg-surface-3 border border-border text-xs text-muted hover:text-snow hover:border-accent transition-all font-mono">
-          copy
-        </button>
+      <!-- Right: Three.js shader canvas (desktop) / static poster (mobile) -->
+      <div class="relative">
+        <div class="hero-canvas-shell hidden lg:block">
+          <canvas id="hero-canvas" aria-hidden="true"></canvas>
+          <!-- Overlay label: subtly hints this is a live render -->
+          <div class="absolute bottom-4 left-4 right-4 flex items-center justify-between pointer-events-none z-10">
+            <span class="font-mono text-[10px] text-muted/70 tracking-wider uppercase">webgl · live</span>
+            <span class="font-mono text-[10px] text-muted/70">60fps</span>
+          </div>
+        </div>
+        <div class="hero-poster lg:hidden"></div>
       </div>
-      <p class="text-xs text-muted">Requires <a href="https://rustup.rs" target="_blank" class="text-accent hover:underline">Rust</a> · No runtime · Single binary</p>
+
     </div>
   </section>
 
   <!-- ── Demo Terminal ── -->
-  <section class="px-4 pb-24">
-    <div class="max-w-4xl mx-auto">
-      <div class="terminal-glow rounded-xl overflow-hidden bg-terminal-bg border border-border reveal">
+  <section class="px-4 lg:px-8 pb-24">
+    <div class="max-w-5xl mx-auto">
+      <div class="terminal-glow rounded-xl overflow-hidden bg-terminal-bg border border-hairline reveal">
         <!-- Terminal chrome -->
-        <div class="flex items-center gap-2 px-4 py-3 border-b border-border bg-surface-1">
+        <div class="flex items-center gap-2 px-4 py-3 border-b border-hairline bg-surface-1">
           <span class="w-3 h-3 rounded-full bg-terminal-red opacity-80"></span>
           <span class="w-3 h-3 rounded-full bg-terminal-yellow opacity-80"></span>
           <span class="w-3 h-3 rounded-full bg-terminal-green opacity-80"></span>
@@ -252,36 +360,89 @@
     </div>
   </section>
 
-  <!-- ── Features ── -->
-  <section class="px-4 pb-24">
+  <!-- ── Features: BENTO grid (asymmetric, NOT a 4-col equal row) ── -->
+  <section class="px-4 lg:px-8 pb-24">
     <div class="max-w-5xl mx-auto">
-      <h2 class="text-2xl font-bold text-center mb-2 reveal">Built for the way you actually work</h2>
-      <p class="text-center text-muted text-sm mb-12 reveal">From local dev to production. From two files to twenty.</p>
+      <h2 class="text-3xl lg:text-4xl font-bold tracking-tight mb-3 reveal">Built for the way you actually work.</h2>
+      <p class="text-muted text-base mb-10 max-w-[60ch] reveal">From local dev to production. From two files to twenty. One command, one view.</p>
 
-      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 stagger">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 stagger" style="grid-auto-rows: minmax(220px, auto);">
 
-        <div class="feature-card reveal rounded-xl border border-border bg-surface-1 p-5">
-          <div class="text-2xl mb-3">🔍</div>
-          <h3 class="font-semibold text-sm mb-2">Matrix view</h3>
-          <p class="text-muted text-xs leading-relaxed">All files side-by-side. All keys in one table. No more juggling multiple <code class="text-snow">diff</code> outputs.</p>
+        <!-- Wide tile: Matrix view (spans 2 cols on lg) -->
+        <div class="bento-tile reveal lg:col-span-2 rounded-2xl border border-hairline bg-surface-1 p-7 flex flex-col justify-between">
+          <div class="flex items-start gap-4">
+            <div class="shrink-0 w-10 h-10 rounded-lg bg-surface-2 border border-hairline flex items-center justify-center text-accent">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="3" y="3" width="7" height="7" rx="1"/>
+                <rect x="14" y="3" width="7" height="7" rx="1"/>
+                <rect x="14" y="14" width="7" height="7" rx="1"/>
+                <rect x="3" y="14" width="7" height="7" rx="1"/>
+              </svg>
+            </div>
+            <div>
+              <h3 class="font-semibold text-lg mb-2 text-snow">Matrix view</h3>
+              <p class="text-muted text-sm leading-relaxed max-w-[52ch]">All files side-by-side. All keys in one table. Stop juggling <code class="font-mono text-snow">diff</code> outputs between two terminals — read drift like a spreadsheet.</p>
+            </div>
+          </div>
+          <div class="mt-6 font-mono text-[11px] text-muted grid grid-cols-4 gap-2">
+            <div class="bg-surface-2 rounded px-2 py-1.5 border border-hairline">KEY</div>
+            <div class="bg-surface-2 rounded px-2 py-1.5 border border-hairline text-terminal-green">.env</div>
+            <div class="bg-surface-2 rounded px-2 py-1.5 border border-hairline text-terminal-yellow">.staging</div>
+            <div class="bg-surface-2 rounded px-2 py-1.5 border border-hairline text-terminal-red">.prod</div>
+          </div>
         </div>
 
-        <div class="feature-card reveal rounded-xl border border-border bg-surface-1 p-5">
-          <div class="text-2xl mb-3">🔎</div>
-          <h3 class="font-semibold text-sm mb-2">Auto-discovery</h3>
-          <p class="text-muted text-xs leading-relaxed">Run <code class="font-mono text-snow">binturong</code> with no arguments and it finds all <code class="font-mono text-snow">.env*</code> files in the current directory.</p>
+        <!-- Tall tile: Auto-discovery -->
+        <div class="bento-tile reveal rounded-2xl border border-hairline bg-surface-1 p-7 flex flex-col justify-between">
+          <div>
+            <div class="w-10 h-10 rounded-lg bg-surface-2 border border-hairline flex items-center justify-center text-accent mb-4">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+            </div>
+            <h3 class="font-semibold text-base mb-2 text-snow">Auto-discovery</h3>
+            <p class="text-muted text-sm leading-relaxed">Run <code class="font-mono text-snow">binturong</code> with zero arguments. It finds every <code class="font-mono text-snow">.env*</code> file in your current directory.</p>
+          </div>
+          <div class="mt-5 font-mono text-[11px] text-muted">
+            <span class="text-terminal-green">$</span> binturong<br/>
+            <span class="text-muted/60">→ found 4 files</span>
+          </div>
         </div>
 
-        <div class="feature-card reveal rounded-xl border border-border bg-surface-1 p-5">
-          <div class="text-2xl mb-3">🔒</div>
-          <h3 class="font-semibold text-sm mb-2">Value masking</h3>
-          <p class="text-muted text-xs leading-relaxed">Values are hidden as <code class="font-mono text-snow">****</code> by default. Use <code class="font-mono text-snow">--values</code> only when you need them.</p>
+        <!-- Narrow tile: Value masking -->
+        <div class="bento-tile reveal rounded-2xl border border-hairline bg-surface-1 p-7 flex flex-col justify-between">
+          <div>
+            <div class="w-10 h-10 rounded-lg bg-surface-2 border border-hairline flex items-center justify-center text-accent mb-4">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/>
+                <line x1="1" y1="1" x2="23" y2="23"/>
+              </svg>
+            </div>
+            <h3 class="font-semibold text-base mb-2 text-snow">Value masking</h3>
+            <p class="text-muted text-sm leading-relaxed">Values hide behind <code class="font-mono text-snow">****</code> by default. Screen-share without leaking secrets.</p>
+          </div>
         </div>
 
-        <div class="feature-card reveal rounded-xl border border-border bg-surface-1 p-5">
-          <div class="text-2xl mb-3">⚡</div>
-          <h3 class="font-semibold text-sm mb-2">CI-friendly</h3>
-          <p class="text-muted text-xs leading-relaxed"><code class="font-mono text-snow">--quiet</code> flag + exit code 1 on drift. Drop it into any pipeline or pre-commit hook.</p>
+        <!-- Wide tile: CI-friendly (spans 2 cols on lg) -->
+        <div class="bento-tile reveal lg:col-span-2 rounded-2xl border border-hairline bg-surface-1 p-7 flex flex-col justify-between">
+          <div class="flex items-start gap-4">
+            <div class="shrink-0 w-10 h-10 rounded-lg bg-surface-2 border border-hairline flex items-center justify-center text-accent">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+              </svg>
+            </div>
+            <div>
+              <h3 class="font-semibold text-lg mb-2 text-snow">CI-friendly</h3>
+              <p class="text-muted text-sm leading-relaxed max-w-[52ch]">Exit code <code class="font-mono text-snow">1</code> on drift, <code class="font-mono text-snow">0</code> on match. Drop it straight into a GitHub Action, a pre-commit hook, or a bash script.</p>
+            </div>
+          </div>
+          <div class="mt-6 font-mono text-[11px] text-muted bg-surface-2 border border-hairline rounded-lg p-3 leading-relaxed">
+            <span class="text-terminal-cyan">- name:</span> <span class="text-snow">Check env drift</span><br/>
+            &nbsp;&nbsp;<span class="text-terminal-cyan">run:</span> <span class="text-snow">binturong --quiet</span>
+          </div>
         </div>
 
       </div>
@@ -289,18 +450,18 @@
   </section>
 
   <!-- ── Status legend ── -->
-  <section class="px-4 pb-24">
+  <section class="px-4 lg:px-8 pb-24">
     <div class="max-w-3xl mx-auto reveal">
-      <h2 class="text-2xl font-bold text-center mb-10">What each symbol means</h2>
-      <div class="rounded-xl border border-border bg-surface-1 overflow-hidden">
+      <h2 class="text-2xl font-bold mb-8">What each symbol means</h2>
+      <div class="rounded-2xl border border-hairline bg-surface-1 overflow-hidden">
         <table class="w-full text-sm font-mono">
           <thead>
-            <tr class="border-b border-border bg-surface-2">
+            <tr class="border-b border-hairline bg-surface-2">
               <th class="text-left px-5 py-3 text-muted font-medium">Symbol</th>
               <th class="text-left px-5 py-3 text-muted font-medium">Meaning</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-border">
+          <tbody class="divide-y divide-hairline">
             <tr>
               <td class="px-5 py-3 text-terminal-green">✓ ****</td>
               <td class="px-5 py-3 text-muted">Key present, value masked</td>
@@ -311,7 +472,7 @@
             </tr>
             <tr>
               <td class="px-5 py-3 text-muted">○ (empty)</td>
-              <td class="px-5 py-3 text-muted">Key exists but is empty</td>
+              <td class="px-5 py-3 text-muted">Key exists but value is empty</td>
             </tr>
             <tr>
               <td class="px-5 py-3 text-terminal-red font-bold">✗ missing</td>
@@ -324,20 +485,20 @@
   </section>
 
   <!-- ── Install ── -->
-  <section class="px-4 pb-24">
+  <section id="install" class="px-4 lg:px-8 pb-24 scroll-mt-20">
     <div class="max-w-3xl mx-auto reveal">
-      <h2 class="text-2xl font-bold text-center mb-10">Install</h2>
+      <h2 class="text-2xl font-bold mb-8">Install</h2>
 
       <!-- Tabs -->
       <div class="flex gap-2 mb-4">
-        <button class="tab-btn active text-xs font-mono px-4 py-2 rounded-lg"
+        <button class="tab-btn active tactile text-xs font-mono px-4 py-2 rounded-lg"
                 onclick="setTab('cargo', this)">cargo install</button>
-        <button class="tab-btn text-xs font-mono px-4 py-2 rounded-lg bg-surface-2 border border-border text-muted"
+        <button class="tab-btn tactile text-xs font-mono px-4 py-2 rounded-lg bg-surface-2 border border-hairline text-muted"
                 onclick="setTab('source', this)">from source</button>
       </div>
 
       <div id="tab-cargo" class="tab-panel">
-        <div class="rounded-xl bg-terminal-bg border border-border p-5 font-mono text-sm">
+        <div class="rounded-xl bg-terminal-bg border border-hairline p-5 font-mono text-sm">
           <p class="text-muted mb-1"><span class="text-terminal-green">$</span> cargo install binturong</p>
           <p class="text-muted mt-4 text-xs"># Then run it anywhere:</p>
           <p class="text-muted"><span class="text-terminal-green">$</span> <span class="text-snow">binturong</span></p>
@@ -345,7 +506,7 @@
       </div>
 
       <div id="tab-source" class="tab-panel hidden">
-        <div class="rounded-xl bg-terminal-bg border border-border p-5 font-mono text-sm space-y-1">
+        <div class="rounded-xl bg-terminal-bg border border-hairline p-5 font-mono text-sm space-y-1">
           <p class="text-muted"><span class="text-terminal-green">$</span> git clone https://github.com/iamkorun/binturong</p>
           <p class="text-muted"><span class="text-terminal-green">$</span> cd binturong</p>
           <p class="text-muted"><span class="text-terminal-green">$</span> cargo install --path .</p>
@@ -353,12 +514,12 @@
       </div>
 
       <!-- Exit codes -->
-      <div class="mt-8 rounded-xl border border-border bg-surface-1 overflow-hidden">
-        <div class="px-5 py-3 border-b border-border bg-surface-2">
+      <div class="mt-8 rounded-2xl border border-hairline bg-surface-1 overflow-hidden">
+        <div class="px-5 py-3 border-b border-hairline bg-surface-2">
           <span class="text-xs font-mono text-muted">exit codes</span>
         </div>
         <table class="w-full text-sm font-mono">
-          <tbody class="divide-y divide-border">
+          <tbody class="divide-y divide-hairline">
             <tr>
               <td class="px-5 py-3 text-terminal-green w-12">0</td>
               <td class="px-5 py-3 text-muted">All files in sync</td>
@@ -378,21 +539,30 @@
   </section>
 
   <!-- ── potto callout ── -->
-  <section class="px-4 pb-24">
+  <section class="px-4 lg:px-8 pb-24">
     <div class="max-w-3xl mx-auto reveal">
-      <div class="rounded-xl border border-border bg-surface-1 p-6 flex flex-col sm:flex-row gap-4 items-start">
-        <div class="text-3xl shrink-0">🦦</div>
-        <div>
-          <h3 class="font-semibold mb-1">Also check out potto</h3>
+      <div class="rounded-2xl border border-hairline bg-surface-1 p-6 flex flex-col sm:flex-row gap-5 items-start">
+        <div class="shrink-0 w-11 h-11 rounded-lg bg-surface-2 border border-hairline flex items-center justify-center text-accent">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+        </div>
+        <div class="flex-1">
+          <h3 class="font-semibold mb-2 text-snow">Also check out potto</h3>
           <p class="text-muted text-sm leading-relaxed mb-3">
             potto keeps <code class="font-mono text-snow">.env</code> and <code class="font-mono text-snow">.env.example</code> in sync.
-            Use potto to validate your template, binturong to audit across all environments.
-            They're complementary tools in the same toolkit.
+            Use potto to validate your template, binturong to audit across environments.
+            Complementary tools in the same toolkit.
           </p>
           <a href="https://github.com/iamkorun/potto"
              target="_blank" rel="noopener"
-             class="inline-flex items-center gap-1.5 text-xs font-mono text-accent hover:underline">
-            github.com/iamkorun/potto →
+             class="tactile inline-flex items-center gap-1.5 text-xs font-mono text-accent hover:underline">
+            github.com/iamkorun/potto
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="5" y1="12" x2="19" y2="12"/>
+              <polyline points="12 5 19 12 12 19"/>
+            </svg>
           </a>
         </div>
       </div>
@@ -400,32 +570,221 @@
   </section>
 
   <!-- ── Footer ── -->
-  <footer class="border-t border-border px-4 py-10">
-    <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted">
+  <footer class="border-t border-hairline px-4 lg:px-8 py-10">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted">
       <div class="flex items-center gap-3">
-        <span class="font-mono">🐻 binturong</span>
+        <span class="font-mono font-semibold text-snow">binturong</span>
         <span class="text-surface-5">·</span>
         <span>MIT License</span>
       </div>
-      <div class="flex items-center gap-4">
-        <a href="https://github.com/iamkorun/binturong" target="_blank" rel="noopener"
-           class="hover:text-snow transition-colors">
-          <img src="https://img.shields.io/github/stars/iamkorun/binturong?style=social" alt="GitHub stars" class="h-5" />
+      <div class="flex items-center gap-3">
+        <a href="https://github.com/iamkorun/binturong/stargazers" target="_blank" rel="noopener"
+           class="tactile hover:text-snow">
+          <img src="https://img.shields.io/github/stars/iamkorun/binturong?style=social" alt="GitHub stars" width="80" height="20" class="h-5 w-auto" loading="lazy" />
         </a>
         <a href="https://buymeacoffee.com/iamkorun" target="_blank" rel="noopener"
-           class="px-3 py-1.5 rounded-lg border border-border hover:border-accent hover:text-accent transition-all text-xs">
-          ☕ Buy Me a Coffee
+           class="tactile inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-hairline hover:border-accent hover:text-accent text-xs font-mono">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M17 8h1a4 4 0 0 1 0 8h-1"/>
+            <path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V8z"/>
+            <line x1="7" y1="2" x2="7" y2="5"/>
+            <line x1="11" y1="2" x2="11" y2="5"/>
+            <line x1="15" y1="2" x2="15" y2="5"/>
+          </svg>
+          Buy Me a Coffee
         </a>
       </div>
     </div>
   </footer>
 
+  <!-- ── Three.js importmap (version pinned) ── -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+      }
+    }
+  </script>
+
+  <!-- ── Three.js shader gradient hero canvas ── -->
+  <script type="module">
+    // Respect user preferences and device type
+    const canvas = document.getElementById('hero-canvas');
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const isMobile = window.matchMedia('(max-width: 1023px)').matches;
+
+    if (canvas && !isMobile) {
+      // Lazy-load Three.js only on desktop + when canvas is in view
+      const lazyLoad = async () => {
+        const THREE = await import('three');
+
+        const vertexShader = `
+          varying vec2 vUv;
+          void main() {
+            vUv = uv;
+            gl_Position = vec4(position.xy, 0.0, 1.0);
+          }
+        `;
+
+        const fragmentShader = `
+          precision highp float;
+          varying vec2 vUv;
+          uniform float uTime;
+
+          float hash(vec2 p) {
+            return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
+          }
+
+          float noise(vec2 p) {
+            vec2 i = floor(p);
+            vec2 f = fract(p);
+            vec2 u = f * f * (3.0 - 2.0 * f);
+            return mix(
+              mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x),
+              mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x),
+              u.y
+            );
+          }
+
+          float fbm(vec2 p) {
+            float v = 0.0;
+            float a = 0.5;
+            for (int i = 0; i < 5; i++) {
+              v += a * noise(p);
+              p *= 2.0;
+              a *= 0.5;
+            }
+            return v;
+          }
+
+          void main() {
+            vec2 uv = vUv;
+            float t = uTime * 0.07;
+
+            // Domain warping for organic flow
+            vec2 q = vec2(fbm(uv * 2.0 + t), fbm(uv * 2.0 + t + 5.2));
+            vec2 r = vec2(
+              fbm(uv * 2.0 + 1.7 * q + t * 1.5 + 1.3),
+              fbm(uv * 2.0 + 9.2 * q + t * 1.2 + 8.3)
+            );
+            float n = fbm(uv * 2.0 + r);
+
+            // Blue/navy palette (no purple — Lila banned)
+            vec3 c0 = vec3(0.027, 0.04, 0.059);
+            vec3 c1 = vec3(0.055, 0.11, 0.2);
+            vec3 c2 = vec3(0.22, 0.47, 0.85);
+            vec3 c3 = vec3(0.345, 0.651, 1.0);
+
+            vec3 col = c0;
+            col = mix(col, c1, smoothstep(0.2, 0.5, n));
+            col = mix(col, c2, smoothstep(0.5, 0.75, n) * 0.9);
+            col = mix(col, c3, smoothstep(0.7, 0.85, n) * 0.6);
+
+            // Vignette
+            float vig = smoothstep(1.1, 0.35, length(vUv - 0.5));
+            col *= 0.42 + 0.58 * vig;
+
+            // Subtle grain
+            col += (hash(vUv * 1920.0 + t * 100.0) - 0.5) * 0.025;
+
+            gl_FragColor = vec4(col, 1.0);
+          }
+        `;
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+        const renderer = new THREE.WebGLRenderer({
+          canvas,
+          antialias: false,
+          alpha: true,
+          powerPreference: 'low-power',
+        });
+        // Cap pixel ratio to prevent retina GPU thrash
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        const resize = () => {
+          const w = canvas.clientWidth;
+          const h = canvas.clientHeight;
+          renderer.setSize(w, h, false);
+        };
+        resize();
+        window.addEventListener('resize', resize);
+
+        const geometry = new THREE.PlaneGeometry(2, 2);
+        const material = new THREE.ShaderMaterial({
+          vertexShader,
+          fragmentShader,
+          uniforms: { uTime: { value: 0 } },
+        });
+        const quad = new THREE.Mesh(geometry, material);
+        scene.add(quad);
+
+        let rafId = null;
+        let running = true;
+        const startTime = performance.now();
+
+        const animate = () => {
+          if (!running) return;
+          material.uniforms.uTime.value = (performance.now() - startTime) / 1000;
+          renderer.render(scene, camera);
+          rafId = requestAnimationFrame(animate);
+        };
+
+        // prefers-reduced-motion: render one frame only
+        if (reducedMotion) {
+          material.uniforms.uTime.value = 4.0;
+          renderer.render(scene, camera);
+          return;
+        }
+
+        // Pause render loop when canvas is offscreen (saves GPU)
+        const io = new IntersectionObserver(
+          (entries) => {
+            const vis = entries[0].isIntersecting;
+            if (vis && !rafId) {
+              running = true;
+              animate();
+            } else if (!vis && rafId) {
+              running = false;
+              cancelAnimationFrame(rafId);
+              rafId = null;
+            }
+          },
+          { threshold: 0 }
+        );
+        io.observe(canvas);
+
+        animate();
+
+        // Cleanup on page unload (dispose GPU resources)
+        const dispose = () => {
+          running = false;
+          if (rafId) cancelAnimationFrame(rafId);
+          io.disconnect();
+          window.removeEventListener('resize', resize);
+          geometry.dispose();
+          material.dispose();
+          renderer.dispose();
+        };
+        window.addEventListener('pagehide', dispose, { once: true });
+      };
+
+      // Defer Three.js load until browser is idle (or after 500ms fallback)
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(lazyLoad, { timeout: 1500 });
+      } else {
+        setTimeout(lazyLoad, 500);
+      }
+    }
+  </script>
+
+  <!-- ── Copy / tabs / reveal (non-module) ── -->
   <script>
-    // ── Copy install command ──
+    // Copy install command
     function copyInstall() {
       navigator.clipboard.writeText('cargo install binturong').then(() => {
         const btn = document.getElementById('copy-btn');
-        btn.textContent = 'copied!';
+        btn.textContent = 'copied';
         btn.classList.add('text-terminal-green', 'border-terminal-green', 'copy-pulse');
         setTimeout(() => {
           btn.textContent = 'copy';
@@ -434,28 +793,28 @@
       });
     }
 
-    // ── Tabs ──
+    // Install tabs
     function setTab(name, el) {
-      document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
-      document.querySelectorAll('.tab-btn').forEach(b => {
+      document.querySelectorAll('.tab-panel').forEach((p) => p.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach((b) => {
         b.classList.remove('active');
-        b.classList.add('bg-surface-2', 'border', 'border-border', 'text-muted');
+        b.classList.add('bg-surface-2', 'border', 'border-hairline', 'text-muted');
       });
       document.getElementById('tab-' + name).classList.remove('hidden');
       el.classList.add('active');
-      el.classList.remove('bg-surface-2', 'border', 'border-border', 'text-muted');
+      el.classList.remove('bg-surface-2', 'border', 'border-hairline', 'text-muted');
     }
 
-    // ── Scroll reveal ──
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
-        }
-      });
-    }, { threshold: 0.1 });
-
-    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    // Scroll reveal
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) entry.target.classList.add('visible');
+        });
+      },
+      { threshold: 0.1 }
+    );
+    document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
   </script>
 </body>
 </html>
