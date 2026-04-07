@@ -181,6 +181,22 @@
       transform: translateY(1px) scale(0.98);
     }
 
+    /* ── Mobile-only: enforce 44px minimum touch targets (iOS HIG) ── */
+    @media (max-width: 767px) {
+      .tactile {
+        min-height: 44px;
+      }
+      nav .tactile {
+        display: inline-flex;
+        align-items: center;
+      }
+      #copy-btn {
+        min-height: 44px;
+        padding-left: 14px;
+        padding-right: 14px;
+      }
+    }
+
     /* ── Tab ── */
     .tab-btn {
       transition: color 0.2s, background-color 0.2s;
