@@ -130,20 +130,27 @@
 
   <!-- ── Nav ── -->
   <nav class="fixed top-0 inset-x-0 z-50 backdrop-blur-md border-b border-char-600/60 dark:border-char-600/60 dark:bg-char-800/75 bg-cream-100/75">
-    <div class="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
-      <a href="#top" class="font-mono font-semibold tracking-tight flex items-center gap-2">
-        <span class="text-xl">🐻</span>
+    <div class="max-w-6xl mx-auto px-4 sm:px-5 h-16 flex items-center justify-between gap-2">
+      <a href="#top" class="font-mono font-semibold tracking-tight flex items-center gap-2 shrink-0 min-h-[44px]">
+        <span class="text-xl" aria-hidden="true">🐻</span>
         <span class="text-char-800 dark:text-cream-100">binturong</span>
       </a>
-      <div class="flex items-center gap-2 sm:gap-3 text-sm">
-        <a href="#in-action" class="hidden sm:inline px-3 py-1.5 rounded-lg text-stone-500 dark:text-stone-400 hover:text-char-800 dark:hover:text-cream-100 transition-colors">demo</a>
-        <a href="#install" class="hidden sm:inline px-3 py-1.5 rounded-lg text-stone-500 dark:text-stone-400 hover:text-char-800 dark:hover:text-cream-100 transition-colors">install</a>
-        <a href="https://github.com/iamkorun/binturong" target="_blank" rel="noopener" class="px-3 py-1.5 rounded-lg text-stone-500 dark:text-stone-400 hover:text-char-800 dark:hover:text-cream-100 transition-colors">GitHub</a>
-        <a href="https://buymeacoffee.com/iamkorun" target="_blank" rel="noopener" class="px-3 py-1.5 rounded-lg border border-char-500/60 dark:border-char-600 hover:border-amber hover:text-amber transition-all text-xs">☕ Coffee</a>
+      <div class="flex items-center gap-1.5 sm:gap-3 text-sm shrink-0">
+        <a href="#in-action" class="hidden md:inline px-3 py-1.5 rounded-lg text-stone-500 dark:text-stone-400 hover:text-char-800 dark:hover:text-cream-100 transition-colors min-h-[44px] inline-flex items-center">demo</a>
+        <a href="#install" class="hidden md:inline px-3 py-1.5 rounded-lg text-stone-500 dark:text-stone-400 hover:text-char-800 dark:hover:text-cream-100 transition-colors min-h-[44px] inline-flex items-center">install</a>
+        <a href="https://github.com/iamkorun/binturong" target="_blank" rel="noopener" aria-label="binturong on GitHub"
+           class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-stone-500 dark:text-stone-400 hover:text-char-800 dark:hover:text-cream-100 transition-colors min-h-[44px]">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.5-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2.1 1.9 1.2 1.9 1.2 1.1 1.9 2.9 1.4 3.6 1 .1-.8.4-1.4.8-1.7-2.7-.3-5.5-1.3-5.5-5.9 0-1.3.5-2.4 1.2-3.2-.1-.4-.5-1.6.1-3.3 0 0 1-.3 3.3 1.2A11.5 11.5 0 0 1 12 5.8c1 0 2 .1 3 .4 2.3-1.5 3.3-1.2 3.3-1.2.7 1.7.2 2.9.1 3.3.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3"/></svg>
+          GitHub
+        </a>
+        <a href="https://buymeacoffee.com/iamkorun" target="_blank" rel="noopener"
+           class="px-2.5 py-1.5 rounded-lg border border-char-500/60 dark:border-char-600 hover:border-amber hover:text-amber transition-all text-xs min-h-[44px] inline-flex items-center">
+          <span aria-hidden="true">☕</span><span class="ml-1 hidden sm:inline">Coffee</span><span class="sr-only sm:hidden">Buy me a coffee</span>
+        </a>
         <button id="theme-toggle" aria-label="toggle theme" aria-pressed="true"
-                class="ml-1 w-11 h-11 grid place-items-center rounded-lg border border-char-500/60 dark:border-char-600 hover:border-amber transition-colors">
-          <svg id="icon-sun" class="hidden w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
-          <svg id="icon-moon" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                class="w-11 h-11 shrink-0 grid place-items-center rounded-lg border border-char-500/60 dark:border-char-600 hover:border-amber transition-colors">
+          <svg id="icon-sun" class="hidden w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+          <svg id="icon-moon" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
         </button>
       </div>
     </div>
