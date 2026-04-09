@@ -1,321 +1,295 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en" class="dark scroll-smooth">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>binturong — Spot config drift across your environments</title>
-  <meta name="description" content="binturong is a Rust CLI that compares multiple .env files side-by-side in a matrix table. Catch config drift across staging, production, and beyond." />
+  <meta name="color-scheme" content="dark light" />
+  <title>🐻 binturong — sniff out .env drift before it bites</title>
+  <meta name="description" content="binturong is a Rust CLI that lays every .env file side-by-side in one matrix. Spot missing keys, empty values, and silent drift across staging, prod, and beyond." />
+  <link rel="canonical" href="https://iamkorun.github.io/binturong" />
 
-  <!-- Open Graph -->
-  <meta property="og:title" content="binturong — Spot config drift across your environments" />
-  <meta property="og:description" content="Compare N .env files side-by-side. See which keys are missing, empty, or drifted. CI-friendly exit codes. Zero runtime." />
+  <meta property="og:title" content="🐻 binturong — sniff out .env drift before it bites" />
+  <meta property="og:description" content="Lay every .env file side-by-side in one matrix. Spot missing keys, empty values, silent drift. CI-friendly. Zero runtime." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://iamkorun.github.io/binturong" />
+  <meta property="og:image" content="https://iamkorun.github.io/binturong/og.png" />
 
-  <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="binturong — Spot config drift across your environments" />
-  <meta name="twitter:description" content="Compare N .env files side-by-side in a matrix table. Catch missing keys before they break production." />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="🐻 binturong — sniff out .env drift before it bites" />
+  <meta name="twitter:description" content="Lay every .env file side-by-side in one matrix. Spot drift before production does." />
+  <meta name="twitter:image" content="https://iamkorun.github.io/binturong/og.png" />
+
+  <script>
+    (function(){
+      try {
+        var t = localStorage.getItem('forge-theme');
+        if (t === 'light') document.documentElement.classList.remove('dark');
+        else document.documentElement.classList.add('dark');
+      } catch(_){ document.documentElement.classList.add('dark'); }
+    })();
+  </script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com/3.4.16"></script>
   <script>
     tailwind.config = {
+      darkMode: 'class',
       theme: {
         extend: {
           colors: {
-            surface: {
-              0: '#070a0f',
-              1: '#0d1117',
-              2: '#161b22',
-              3: '#1c2333',
-              4: '#232d3f',
-              5: '#2d3a50',
-            },
-            border: { DEFAULT: '#21303f', hover: '#3a4f6a' },
-            accent: { DEFAULT: '#58a6ff', dim: '#388bfd', glow: '#58a6ff22' },
-            muted: '#7d8fa0',
-            snow: '#e8edf4',
-            terminal: {
-              bg: '#080c12',
-              green: '#3fb950',
-              yellow: '#d29922',
-              red: '#f85149',
-              cyan: '#39c5cf',
-              blue: '#58a6ff',
-            },
+            char: { 900:'#14120E', 800:'#1C1A17', 700:'#25221D', 600:'#2F2B25', 500:'#3C372F' },
+            cream:{ 50:'#FFFBF5', 100:'#FAF6EF', 200:'#F1EBDF', 300:'#E5DDCD' },
+            amber:{ DEFAULT:'#E4A43A', hi:'#F2B347', lo:'#B87E1C' },
+            sage: '#7A8F5E',
+            rust: '#C3553A',
+            stone:{ 400:'#A39A8A', 500:'#7D7568', 600:'#5C564B' },
           },
           fontFamily: {
-            sans: ['Inter', 'system-ui', 'sans-serif'],
-            mono: ['JetBrains Mono', 'Menlo', 'monospace'],
+            sans: ['Geist', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+            mono: ['"Geist Mono"', 'ui-monospace', 'JetBrains Mono', 'monospace'],
           },
         },
       },
     }
   </script>
   <style>
-    /* ── Grain overlay ── */
+    :root { color-scheme: dark light; }
+    html, body { font-feature-settings: "ss01","cv11"; }
+    html.dark  body { background:#1C1A17; color:#F1EBDF; }
+    html:not(.dark) body { background:#FAF6EF; color:#25221D; }
+
     body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      z-index: 9999;
-      pointer-events: none;
-      opacity: 0.022;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-      background-repeat: repeat;
-      background-size: 180px;
+      content:''; position:fixed; inset:0; z-index:100; pointer-events:none;
+      opacity:0.035;
+      background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size:220px;
     }
 
-    /* ── Hero glow ── */
     .hero-glow {
-      position: absolute;
-      top: -100px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 900px;
-      height: 600px;
-      background: radial-gradient(ellipse at center, rgba(88,166,255,0.07) 0%, transparent 70%);
-      pointer-events: none;
-      z-index: 0;
+      position:absolute; top:-120px; left:50%; transform:translateX(-50%);
+      width:900px; height:520px; pointer-events:none; z-index:0;
+      background:radial-gradient(ellipse at center, rgba(228,164,58,0.12) 0%, transparent 65%);
+    }
+    html:not(.dark) .hero-glow {
+      background:radial-gradient(ellipse at center, rgba(228,164,58,0.18) 0%, transparent 65%);
     }
 
-    /* ── Terminal glow ── */
-    .terminal-glow {
-      box-shadow:
-        0 0 0 1px #21303f,
-        0 4px 24px rgba(0,0,0,0.6),
-        0 16px 80px rgba(88,166,255,0.05),
-        0 0 120px rgba(88,166,255,0.02);
+    .reveal { opacity:0; transform:translateY(16px); transition: opacity .7s cubic-bezier(.16,1,.3,1), transform .7s cubic-bezier(.16,1,.3,1); }
+    .reveal.visible { opacity:1; transform:none; }
+    @media (prefers-reduced-motion: reduce){
+      .reveal { opacity:1; transform:none; transition:none; }
+      * { animation: none !important; transition: none !important; }
     }
 
-    /* ── Scroll reveal ── */
-    .reveal {
-      opacity: 0;
-      transform: translateY(20px);
-      transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1), transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+    .surface { background:#25221D; border-color:#3C372F; }
+    html:not(.dark) .surface { background:#FFFBF5; border-color:#E5DDCD; }
+
+    .term {
+      background:#14120E; border:1px solid #3C372F;
+      box-shadow: 0 0 0 1px #2F2B25, 0 24px 80px -20px rgba(0,0,0,.6), 0 0 120px -40px rgba(228,164,58,.15);
     }
-    .reveal.visible {
-      opacity: 1;
-      transform: translateY(0);
+    html:not(.dark) .term {
+      background:#FFFBF5; border-color:#E5DDCD;
+      box-shadow: 0 0 0 1px #E5DDCD, 0 24px 60px -24px rgba(92,86,75,.18);
+    }
+    html:not(.dark) .term .term-sub { color:#5C564B; }
+    html:not(.dark) .term .term-snow { color:#25221D; }
+    html:not(.dark) .term .term-rule { color:#C9BEA6; }
+
+    .install-pill {
+      background:linear-gradient(135deg,#25221D,#1C1A17);
+      border:1px solid #3C372F;
+      box-shadow: 0 20px 60px -24px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,251,245,.03);
+    }
+    html:not(.dark) .install-pill {
+      background:linear-gradient(135deg,#FFFBF5,#F1EBDF);
+      border:1px solid #E5DDCD;
+      box-shadow: 0 18px 44px -22px rgba(60,55,47,.25);
     }
 
-    .stagger > .reveal:nth-child(1) { transition-delay: 0ms; }
-    .stagger > .reveal:nth-child(2) { transition-delay: 60ms; }
-    .stagger > .reveal:nth-child(3) { transition-delay: 120ms; }
-    .stagger > .reveal:nth-child(4) { transition-delay: 180ms; }
+    .tab-btn { transition: color .2s, background-color .2s, border-color .2s; }
+    .tab-btn.active { background:#E4A43A; color:#1C1A17; border-color:#E4A43A; }
+    html:not(.dark) .tab-btn.active { background:#E4A43A; color:#1C1A17; }
 
-    /* ── Feature card ── */
-    .feature-card {
-      transition: border-color 0.3s ease, box-shadow 0.3s ease;
-    }
-    .feature-card:hover {
-      border-color: #3a4f6a;
-      box-shadow: 0 8px 32px rgba(88,166,255,0.06);
-    }
+    .ok      { color:#7A8F5E; }
+    .drift   { color:#E4A43A; }
+    .miss    { color:#C3553A; }
+    .empty   { color:#7D7568; }
+    .rule    { color:#3C372F; }
+    html:not(.dark) .rule { color:#C9BEA6; }
 
-    /* ── Install box ── */
-    .install-box {
-      background: linear-gradient(135deg, #0d1117, #161b22);
-      position: relative;
+    .toast {
+      position:fixed; left:50%; bottom:28px; transform:translateX(-50%) translateY(20px);
+      background:#E4A43A; color:#1C1A17; padding:.6rem 1rem; border-radius:9999px;
+      font-family:'Geist Mono',monospace; font-size:.8rem; font-weight:600;
+      opacity:0; pointer-events:none; transition:opacity .3s, transform .3s;
+      box-shadow: 0 10px 30px -8px rgba(228,164,58,.5);
+      z-index:200;
     }
-    .install-box::before {
-      content: '';
-      position: absolute;
-      inset: -1px;
-      border-radius: inherit;
-      padding: 1px;
-      background: linear-gradient(135deg, #2d3a50, #21303f 50%, #2d3a50);
-      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-      -webkit-mask-composite: xor;
-      mask-composite: exclude;
-      pointer-events: none;
-    }
-
-    /* ── Tab ── */
-    .tab-btn {
-      transition: color 0.2s, background-color 0.2s;
-    }
-    .tab-btn.active {
-      background: #58a6ff;
-      color: #070a0f;
-    }
-
-    /* ── Copy button pulse ── */
-    @keyframes copied-pulse {
-      0%   { box-shadow: 0 0 0 0 rgba(88,166,255,0.4); }
-      70%  { box-shadow: 0 0 0 8px rgba(88,166,255,0); }
-      100% { box-shadow: 0 0 0 0 rgba(88,166,255,0); }
-    }
-    .copy-pulse {
-      animation: copied-pulse 0.5s ease-out;
-    }
-
-    /* ── Matrix row highlight ── */
-    .matrix-row-drift {
-      color: #d29922;
-    }
-    .matrix-row-missing {
-      color: #f85149;
-    }
-    .matrix-row-ok {
-      color: #3fb950;
-    }
-    .matrix-row-empty {
-      color: #7d8fa0;
-    }
+    .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
   </style>
 </head>
-<body class="bg-surface-0 text-snow font-sans antialiased">
+<body class="font-sans antialiased">
 
   <!-- ── Nav ── -->
-  <nav class="fixed top-0 inset-x-0 z-50 border-b border-border bg-surface-0/80 backdrop-blur-md">
-    <div class="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
-      <span class="font-mono font-semibold text-snow tracking-tight">🐻 binturong</span>
-      <div class="flex items-center gap-4 text-sm text-muted">
-        <a href="https://github.com/iamkorun/binturong" target="_blank" rel="noopener"
-           class="hover:text-snow transition-colors">GitHub</a>
-        <a href="https://crates.io/crates/binturong" target="_blank" rel="noopener"
-           class="hover:text-snow transition-colors">crates.io</a>
-        <a href="https://buymeacoffee.com/iamkorun" target="_blank" rel="noopener"
-           class="px-3 py-1 rounded-full border border-border hover:border-accent hover:text-accent transition-all text-xs">☕ Coffee</a>
+  <nav class="fixed top-0 inset-x-0 z-50 backdrop-blur-md border-b border-char-600/60 dark:border-char-600/60 dark:bg-char-800/75 bg-cream-100/75">
+    <div class="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
+      <a href="#top" class="font-mono font-semibold tracking-tight flex items-center gap-2">
+        <span class="text-xl">🐻</span>
+        <span class="text-char-800 dark:text-cream-100">binturong</span>
+      </a>
+      <div class="flex items-center gap-2 sm:gap-3 text-sm">
+        <a href="#in-action" class="hidden sm:inline px-3 py-1.5 rounded-lg text-stone-500 dark:text-stone-400 hover:text-char-800 dark:hover:text-cream-100 transition-colors">demo</a>
+        <a href="#install" class="hidden sm:inline px-3 py-1.5 rounded-lg text-stone-500 dark:text-stone-400 hover:text-char-800 dark:hover:text-cream-100 transition-colors">install</a>
+        <a href="https://github.com/iamkorun/binturong" target="_blank" rel="noopener" class="px-3 py-1.5 rounded-lg text-stone-500 dark:text-stone-400 hover:text-char-800 dark:hover:text-cream-100 transition-colors">GitHub</a>
+        <a href="https://buymeacoffee.com/iamkorun" target="_blank" rel="noopener" class="px-3 py-1.5 rounded-lg border border-char-500/60 dark:border-char-600 hover:border-amber hover:text-amber transition-all text-xs">☕ Coffee</a>
+        <button id="theme-toggle" aria-label="toggle theme" aria-pressed="true"
+                class="ml-1 w-11 h-11 grid place-items-center rounded-lg border border-char-500/60 dark:border-char-600 hover:border-amber transition-colors">
+          <svg id="icon-sun" class="hidden w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+          <svg id="icon-moon" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
       </div>
     </div>
   </nav>
 
   <!-- ── Hero ── -->
-  <section class="relative pt-32 pb-20 px-4 overflow-hidden">
+  <section id="top" class="relative pt-36 pb-20 px-5 overflow-hidden">
     <div class="hero-glow"></div>
-    <div class="relative z-10 max-w-4xl mx-auto text-center">
-
-      <div class="inline-flex items-center gap-2 px-3 py-1 mb-6 rounded-full bg-surface-2 border border-border text-xs text-muted font-mono">
-        <span class="w-1.5 h-1.5 rounded-full bg-terminal-green animate-pulse"></span>
-        v0.1.0 · written in Rust
+    <div class="relative z-10 max-w-3xl mx-auto text-center">
+      <div class="inline-flex items-center gap-2 px-3 py-1 mb-7 rounded-full surface border text-xs font-mono text-stone-500 dark:text-stone-400">
+        <span class="w-1.5 h-1.5 rounded-full bg-sage animate-pulse"></span>
+        v0.1.0 · written in Rust · MIT
       </div>
 
-      <h1 class="text-5xl sm:text-6xl font-black tracking-tight leading-none mb-5">
-        <span class="text-snow">Spot config drift</span><br/>
-        <span class="text-accent">before it bites you.</span>
+      <h1 class="font-sans font-semibold tracking-tight leading-[0.95] mb-6 text-[clamp(2.5rem,7vw,4.75rem)]">
+        <span class="text-char-800 dark:text-cream-100">sniff out <span class="text-amber">.env drift</span></span><br/>
+        <span class="text-stone-500 dark:text-stone-400 font-medium">before it bites production.</span>
       </h1>
 
-      <p class="text-lg text-muted max-w-2xl mx-auto mb-10 leading-relaxed">
-        binturong compares your <code class="font-mono text-snow bg-surface-2 px-1.5 py-0.5 rounded">.env</code> files side-by-side in a matrix table.
-        See which keys are missing, empty, or drifted — across every environment at once.
+      <p class="text-base sm:text-lg text-stone-500 dark:text-stone-400 max-w-2xl mx-auto mb-10 leading-relaxed">
+        binturong lays every <code class="font-mono text-char-800 dark:text-cream-100 surface border px-1.5 py-0.5 rounded">.env</code> file side-by-side in one matrix table.
+        Missing keys, empty values, silent drift — all visible in one glance.
       </p>
 
-      <!-- Install box -->
-      <div class="install-box max-w-lg mx-auto rounded-xl px-6 py-4 mb-4 flex items-center justify-between gap-4">
-        <span class="font-mono text-accent text-sm sm:text-base select-all">cargo install binturong</span>
-        <button id="copy-btn"
-                onclick="copyInstall()"
-                class="shrink-0 px-3 py-1.5 rounded-lg bg-surface-3 border border-border text-xs text-muted hover:text-snow hover:border-accent transition-all font-mono">
+      <!-- Install pill (HERO ANCHOR) -->
+      <button id="install-pill" onclick="copyInstall()"
+              class="install-pill group max-w-xl w-full mx-auto rounded-2xl px-5 sm:px-7 py-5 flex items-center justify-between gap-4 text-left cursor-pointer active:scale-[0.98] transition-transform">
+        <div class="flex items-center gap-3 min-w-0">
+          <span class="font-mono text-amber text-sm shrink-0 select-none">$</span>
+          <span class="font-mono text-char-800 dark:text-cream-100 text-base sm:text-xl truncate">cargo install binturong</span>
+        </div>
+        <span class="shrink-0 flex items-center gap-2 px-3 py-2 rounded-lg border border-char-500/60 dark:border-char-600 text-xs font-mono text-stone-500 dark:text-stone-400 group-hover:border-amber group-hover:text-amber transition-colors">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
           copy
-        </button>
+        </span>
+      </button>
+      <p class="text-xs text-stone-500 dark:text-stone-400 mt-4">
+        needs <a href="https://rustup.rs" target="_blank" class="text-amber hover:underline">Rust</a>
+        · single binary · no runtime · zero config
+      </p>
+
+      <div class="mt-10 flex items-center justify-center gap-3 text-sm">
+        <a href="#in-action" class="px-4 py-2 rounded-lg bg-amber text-char-900 hover:bg-amber-hi transition-colors font-medium">see it work →</a>
+        <a href="https://github.com/iamkorun/binturong" target="_blank" rel="noopener"
+           class="px-4 py-2 rounded-lg border border-char-500/60 dark:border-char-600 hover:border-amber hover:text-amber transition-all font-medium">
+          ★ on GitHub
+        </a>
       </div>
-      <p class="text-xs text-muted">Requires <a href="https://rustup.rs" target="_blank" class="text-accent hover:underline">Rust</a> · No runtime · Single binary</p>
     </div>
   </section>
 
   <!-- ── Demo Terminal ── -->
-  <section class="px-4 pb-24">
+  <section id="in-action" class="px-5 pb-28">
     <div class="max-w-4xl mx-auto">
-      <div class="terminal-glow rounded-xl overflow-hidden bg-terminal-bg border border-border reveal">
-        <!-- Terminal chrome -->
-        <div class="flex items-center gap-2 px-4 py-3 border-b border-border bg-surface-1">
-          <span class="w-3 h-3 rounded-full bg-terminal-red opacity-80"></span>
-          <span class="w-3 h-3 rounded-full bg-terminal-yellow opacity-80"></span>
-          <span class="w-3 h-3 rounded-full bg-terminal-green opacity-80"></span>
-          <span class="ml-3 font-mono text-xs text-muted">~/myproject</span>
+      <p class="text-center text-xs font-mono uppercase tracking-widest text-stone-500 dark:text-stone-400 mb-5 reveal">the whole fleet in one table</p>
+      <div class="term rounded-2xl overflow-hidden reveal">
+        <div class="flex items-center gap-2 px-4 py-3 border-b border-char-600/60">
+          <span class="w-3 h-3 rounded-full bg-rust opacity-80"></span>
+          <span class="w-3 h-3 rounded-full bg-amber opacity-80"></span>
+          <span class="w-3 h-3 rounded-full bg-sage opacity-80"></span>
+          <span class="ml-3 font-mono text-xs term-sub text-stone-500 dark:text-stone-400">~/myproject</span>
         </div>
-        <!-- Terminal content -->
-        <div class="p-5 font-mono text-sm overflow-x-auto leading-relaxed">
-          <p class="text-muted mb-1"><span class="text-terminal-green">$</span> binturong .env .env.staging .env.production</p>
-          <p class="mt-3 text-surface-5">┌─────────────────────┬───────────┬──────────────┬──────────────────────┐</p>
-          <p class="text-surface-5">│ <span class="text-snow font-semibold">KEY                 </span> │ <span class="text-snow font-semibold">  .env   </span> │ <span class="text-snow font-semibold">.env.staging</span> │ <span class="text-snow font-semibold">.env.production     </span> │</p>
-          <p class="text-surface-5">╞═════════════════════╪═══════════╪══════════════╪══════════════════════╡</p>
-          <p class="text-surface-5">│ <span class="text-snow">APP_ENV             </span> │ <span class="matrix-row-ok">✓ ****   </span> │ <span class="matrix-row-ok">✓ ****      </span> │ <span class="matrix-row-ok">✓ ****              </span> │</p>
-          <p class="text-surface-5">├─────────────────────┼───────────┼──────────────┼──────────────────────┤</p>
-          <p class="text-surface-5">│ <span class="text-snow">DATABASE_URL        </span> │ <span class="matrix-row-ok">✓ ****   </span> │ <span class="matrix-row-ok">✓ ****      </span> │ <span class="matrix-row-ok">✓ ****              </span> │</p>
-          <p class="text-surface-5">├─────────────────────┼───────────┼──────────────┼──────────────────────┤</p>
-          <p class="text-surface-5">│ <span class="matrix-row-drift font-semibold">LOG_LEVEL           </span> │ <span class="matrix-row-drift">✓ ****   </span> │ <span class="matrix-row-drift">✓ ****      </span> │ <span class="matrix-row-missing">✗ missing           </span> │</p>
-          <p class="text-surface-5">├─────────────────────┼───────────┼──────────────┼──────────────────────┤</p>
-          <p class="text-surface-5">│ <span class="matrix-row-drift font-semibold">REDIS_URL           </span> │ <span class="matrix-row-drift">✓ ****   </span> │ <span class="matrix-row-missing">✗ missing   </span> │ <span class="matrix-row-missing">✗ missing           </span> │</p>
-          <p class="text-surface-5">├─────────────────────┼───────────┼──────────────┼──────────────────────┤</p>
-          <p class="text-surface-5">│ <span class="matrix-row-drift font-semibold">STRIPE_SECRET_KEY   </span> │ <span class="matrix-row-drift">✓ ****   </span> │ <span class="matrix-row-empty">○ (empty)   </span> │ <span class="matrix-row-drift">✓ ****              </span> │</p>
-          <p class="text-surface-5">└─────────────────────┴───────────┴──────────────┴──────────────────────┘</p>
-          <p class="mt-3"><span class="matrix-row-missing font-bold">✗</span> <span class="text-snow">3/5 keys drifted across 3 files</span></p>
-          <p class="text-muted"><span class="text-surface-5">→</span> re-run with <span class="text-snow">--values</span> to inspect drifted values</p>
+        <div class="p-5 sm:p-6 font-mono text-[13px] sm:text-sm overflow-x-auto leading-relaxed whitespace-pre">
+<span class="ok">$</span> <span class="term-snow text-cream-100 dark:text-cream-100">binturong .env .env.staging .env.production</span>
+
+<span class="rule">┌─────────────────────┬──────────┬──────────────┬────────────────────┐</span>
+<span class="rule">│</span> <span class="term-snow text-cream-100 dark:text-cream-100 font-semibold">KEY                </span> <span class="rule">│</span> <span class="term-snow text-cream-100 dark:text-cream-100 font-semibold">  .env  </span> <span class="rule">│</span> <span class="term-snow text-cream-100 dark:text-cream-100 font-semibold">.env.staging</span> <span class="rule">│</span> <span class="term-snow text-cream-100 dark:text-cream-100 font-semibold">.env.production   </span> <span class="rule">│</span>
+<span class="rule">╞═════════════════════╪══════════╪══════════════╪════════════════════╡</span>
+<span class="rule">│</span> APP_ENV             <span class="rule">│</span> <span class="ok">✓ ****  </span> <span class="rule">│</span> <span class="ok">✓ ****      </span> <span class="rule">│</span> <span class="ok">✓ ****            </span> <span class="rule">│</span>
+<span class="rule">├─────────────────────┼──────────┼──────────────┼────────────────────┤</span>
+<span class="rule">│</span> DATABASE_URL        <span class="rule">│</span> <span class="ok">✓ ****  </span> <span class="rule">│</span> <span class="ok">✓ ****      </span> <span class="rule">│</span> <span class="ok">✓ ****            </span> <span class="rule">│</span>
+<span class="rule">├─────────────────────┼──────────┼──────────────┼────────────────────┤</span>
+<span class="rule">│</span> <span class="drift font-semibold">LOG_LEVEL          </span> <span class="rule">│</span> <span class="drift">✓ ****  </span> <span class="rule">│</span> <span class="drift">✓ ****      </span> <span class="rule">│</span> <span class="miss">✗ missing         </span> <span class="rule">│</span>
+<span class="rule">├─────────────────────┼──────────┼──────────────┼────────────────────┤</span>
+<span class="rule">│</span> <span class="drift font-semibold">REDIS_URL          </span> <span class="rule">│</span> <span class="drift">✓ ****  </span> <span class="rule">│</span> <span class="miss">✗ missing   </span> <span class="rule">│</span> <span class="miss">✗ missing         </span> <span class="rule">│</span>
+<span class="rule">├─────────────────────┼──────────┼──────────────┼────────────────────┤</span>
+<span class="rule">│</span> <span class="drift font-semibold">STRIPE_SECRET_KEY  </span> <span class="rule">│</span> <span class="drift">✓ ****  </span> <span class="rule">│</span> <span class="empty">○ (empty)   </span> <span class="rule">│</span> <span class="drift">✓ ****            </span> <span class="rule">│</span>
+<span class="rule">└─────────────────────┴──────────┴──────────────┴────────────────────┘</span>
+
+<span class="miss font-bold">✗</span> <span class="term-snow text-cream-100 dark:text-cream-100">3 of 5 keys drifted across 3 files</span>
+<span class="term-sub text-stone-500 dark:text-stone-400">→ pass --values to inspect drifted values (masked by default)</span>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ── Features ── -->
-  <section class="px-4 pb-24">
+  <!-- ── Why ── -->
+  <section class="px-5 pb-28">
     <div class="max-w-5xl mx-auto">
-      <h2 class="text-2xl font-bold text-center mb-2 reveal">Built for the way you actually work</h2>
-      <p class="text-center text-muted text-sm mb-12 reveal">From local dev to production. From two files to twenty.</p>
+      <h2 class="text-3xl sm:text-4xl font-semibold tracking-tight text-center mb-3 reveal">built for the way you actually ship</h2>
+      <p class="text-center text-stone-500 dark:text-stone-400 max-w-2xl mx-auto mb-14 reveal">from local dev to prod. from two files to twenty. no YAML, no daemon, no SaaS.</p>
 
-      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 stagger">
-
-        <div class="feature-card reveal rounded-xl border border-border bg-surface-1 p-5">
-          <div class="text-2xl mb-3">🔍</div>
-          <h3 class="font-semibold text-sm mb-2">Matrix view</h3>
-          <p class="text-muted text-xs leading-relaxed">All files side-by-side. All keys in one table. No more juggling multiple <code class="text-snow">diff</code> outputs.</p>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="reveal surface border rounded-2xl p-6 hover:-translate-y-0.5 hover:border-amber/60 transition-all">
+          <div class="w-10 h-10 rounded-lg bg-amber/15 text-amber grid place-items-center mb-4 font-mono">▦</div>
+          <h3 class="font-semibold mb-2">matrix view</h3>
+          <p class="text-sm text-stone-500 dark:text-stone-400 leading-relaxed">every file a column. every key a row. one glance tells you what's drifted.</p>
         </div>
-
-        <div class="feature-card reveal rounded-xl border border-border bg-surface-1 p-5">
-          <div class="text-2xl mb-3">🔎</div>
-          <h3 class="font-semibold text-sm mb-2">Auto-discovery</h3>
-          <p class="text-muted text-xs leading-relaxed">Run <code class="font-mono text-snow">binturong</code> with no arguments and it finds all <code class="font-mono text-snow">.env*</code> files in the current directory.</p>
+        <div class="reveal surface border rounded-2xl p-6 hover:-translate-y-0.5 hover:border-amber/60 transition-all">
+          <div class="w-10 h-10 rounded-lg bg-sage/15 text-sage grid place-items-center mb-4 font-mono">⌕</div>
+          <h3 class="font-semibold mb-2">auto-discovery</h3>
+          <p class="text-sm text-stone-500 dark:text-stone-400 leading-relaxed">run <code class="font-mono text-char-800 dark:text-cream-100">binturong</code> with no args — it finds every <code class="font-mono text-char-800 dark:text-cream-100">.env*</code> in cwd.</p>
         </div>
-
-        <div class="feature-card reveal rounded-xl border border-border bg-surface-1 p-5">
-          <div class="text-2xl mb-3">🔒</div>
-          <h3 class="font-semibold text-sm mb-2">Value masking</h3>
-          <p class="text-muted text-xs leading-relaxed">Values are hidden as <code class="font-mono text-snow">****</code> by default. Use <code class="font-mono text-snow">--values</code> only when you need them.</p>
+        <div class="reveal surface border rounded-2xl p-6 hover:-translate-y-0.5 hover:border-amber/60 transition-all">
+          <div class="w-10 h-10 rounded-lg bg-rust/15 text-rust grid place-items-center mb-4 font-mono">✱</div>
+          <h3 class="font-semibold mb-2">value masking</h3>
+          <p class="text-sm text-stone-500 dark:text-stone-400 leading-relaxed">values hidden as <code class="font-mono text-char-800 dark:text-cream-100">****</code> by default. opt in with <code class="font-mono text-char-800 dark:text-cream-100">--values</code>.</p>
         </div>
-
-        <div class="feature-card reveal rounded-xl border border-border bg-surface-1 p-5">
-          <div class="text-2xl mb-3">⚡</div>
-          <h3 class="font-semibold text-sm mb-2">CI-friendly</h3>
-          <p class="text-muted text-xs leading-relaxed"><code class="font-mono text-snow">--quiet</code> flag + exit code 1 on drift. Drop it into any pipeline or pre-commit hook.</p>
+        <div class="reveal surface border rounded-2xl p-6 hover:-translate-y-0.5 hover:border-amber/60 transition-all">
+          <div class="w-10 h-10 rounded-lg bg-amber/15 text-amber grid place-items-center mb-4 font-mono">↯</div>
+          <h3 class="font-semibold mb-2">CI-friendly</h3>
+          <p class="text-sm text-stone-500 dark:text-stone-400 leading-relaxed"><code class="font-mono text-char-800 dark:text-cream-100">--quiet</code> + exit 1 on drift. drop it into any pre-commit or pipeline.</p>
         </div>
-
       </div>
     </div>
   </section>
 
-  <!-- ── Status legend ── -->
-  <section class="px-4 pb-24">
+  <!-- ── Legend ── -->
+  <section class="px-5 pb-28">
     <div class="max-w-3xl mx-auto reveal">
-      <h2 class="text-2xl font-bold text-center mb-10">What each symbol means</h2>
-      <div class="rounded-xl border border-border bg-surface-1 overflow-hidden">
+      <h2 class="text-2xl sm:text-3xl font-semibold tracking-tight text-center mb-10">what each symbol means</h2>
+      <div class="surface border rounded-2xl overflow-hidden">
         <table class="w-full text-sm font-mono">
-          <thead>
-            <tr class="border-b border-border bg-surface-2">
-              <th class="text-left px-5 py-3 text-muted font-medium">Symbol</th>
-              <th class="text-left px-5 py-3 text-muted font-medium">Meaning</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-border">
+          <tbody class="divide-y divide-char-600/40 dark:divide-char-600/60">
             <tr>
-              <td class="px-5 py-3 text-terminal-green">✓ ****</td>
-              <td class="px-5 py-3 text-muted">Key present, value masked</td>
+              <td class="px-5 py-4 ok w-40">✓ ****</td>
+              <td class="px-5 py-4 text-stone-500 dark:text-stone-400">key present, value masked</td>
             </tr>
             <tr>
-              <td class="px-5 py-3 text-terminal-green">✓ &lt;value&gt;</td>
-              <td class="px-5 py-3 text-muted">Key present, value visible (with <span class="text-snow">--values</span>)</td>
+              <td class="px-5 py-4 ok">✓ &lt;value&gt;</td>
+              <td class="px-5 py-4 text-stone-500 dark:text-stone-400">key present, value visible (with <span class="text-char-800 dark:text-cream-100">--values</span>)</td>
             </tr>
             <tr>
-              <td class="px-5 py-3 text-muted">○ (empty)</td>
-              <td class="px-5 py-3 text-muted">Key exists but is empty</td>
+              <td class="px-5 py-4 empty">○ (empty)</td>
+              <td class="px-5 py-4 text-stone-500 dark:text-stone-400">key exists but is empty</td>
             </tr>
             <tr>
-              <td class="px-5 py-3 text-terminal-red font-bold">✗ missing</td>
-              <td class="px-5 py-3 text-muted">Key not found in this file</td>
+              <td class="px-5 py-4 miss font-semibold">✗ missing</td>
+              <td class="px-5 py-4 text-stone-500 dark:text-stone-400">key not found in this file</td>
             </tr>
           </tbody>
         </table>
@@ -324,53 +298,42 @@
   </section>
 
   <!-- ── Install ── -->
-  <section class="px-4 pb-24">
+  <section id="install" class="px-5 pb-28">
     <div class="max-w-3xl mx-auto reveal">
-      <h2 class="text-2xl font-bold text-center mb-10">Install</h2>
+      <h2 class="text-2xl sm:text-3xl font-semibold tracking-tight text-center mb-10">install</h2>
 
-      <!-- Tabs -->
       <div class="flex gap-2 mb-4">
-        <button class="tab-btn active text-xs font-mono px-4 py-2 rounded-lg"
+        <button class="tab-btn active text-xs font-mono px-4 py-2 rounded-lg border border-char-500/60 dark:border-char-600"
                 onclick="setTab('cargo', this)">cargo install</button>
-        <button class="tab-btn text-xs font-mono px-4 py-2 rounded-lg bg-surface-2 border border-border text-muted"
+        <button class="tab-btn text-xs font-mono px-4 py-2 rounded-lg surface border text-stone-500 dark:text-stone-400"
                 onclick="setTab('source', this)">from source</button>
       </div>
 
       <div id="tab-cargo" class="tab-panel">
-        <div class="rounded-xl bg-terminal-bg border border-border p-5 font-mono text-sm">
-          <p class="text-muted mb-1"><span class="text-terminal-green">$</span> cargo install binturong</p>
-          <p class="text-muted mt-4 text-xs"># Then run it anywhere:</p>
-          <p class="text-muted"><span class="text-terminal-green">$</span> <span class="text-snow">binturong</span></p>
+        <div class="term rounded-2xl p-6 font-mono text-sm">
+          <p><span class="ok">$</span> <span class="term-snow text-cream-100 dark:text-cream-100">cargo install binturong</span></p>
+          <p class="term-sub text-stone-500 dark:text-stone-400 mt-4 text-xs"># then run it anywhere:</p>
+          <p><span class="ok">$</span> <span class="term-snow text-cream-100 dark:text-cream-100">binturong</span></p>
         </div>
       </div>
 
       <div id="tab-source" class="tab-panel hidden">
-        <div class="rounded-xl bg-terminal-bg border border-border p-5 font-mono text-sm space-y-1">
-          <p class="text-muted"><span class="text-terminal-green">$</span> git clone https://github.com/iamkorun/binturong</p>
-          <p class="text-muted"><span class="text-terminal-green">$</span> cd binturong</p>
-          <p class="text-muted"><span class="text-terminal-green">$</span> cargo install --path .</p>
+        <div class="term rounded-2xl p-6 font-mono text-sm space-y-1">
+          <p><span class="ok">$</span> <span class="term-snow text-cream-100 dark:text-cream-100">git clone https://github.com/iamkorun/binturong</span></p>
+          <p><span class="ok">$</span> <span class="term-snow text-cream-100 dark:text-cream-100">cd binturong</span></p>
+          <p><span class="ok">$</span> <span class="term-snow text-cream-100 dark:text-cream-100">cargo install --path .</span></p>
         </div>
       </div>
 
-      <!-- Exit codes -->
-      <div class="mt-8 rounded-xl border border-border bg-surface-1 overflow-hidden">
-        <div class="px-5 py-3 border-b border-border bg-surface-2">
-          <span class="text-xs font-mono text-muted">exit codes</span>
+      <div class="mt-8 surface border rounded-2xl overflow-hidden">
+        <div class="px-5 py-3 border-b border-char-600/50">
+          <span class="text-xs font-mono text-stone-500 dark:text-stone-400 uppercase tracking-wider">exit codes</span>
         </div>
         <table class="w-full text-sm font-mono">
-          <tbody class="divide-y divide-border">
-            <tr>
-              <td class="px-5 py-3 text-terminal-green w-12">0</td>
-              <td class="px-5 py-3 text-muted">All files in sync</td>
-            </tr>
-            <tr>
-              <td class="px-5 py-3 text-terminal-yellow">1</td>
-              <td class="px-5 py-3 text-muted">Drift detected</td>
-            </tr>
-            <tr>
-              <td class="px-5 py-3 text-terminal-red">2</td>
-              <td class="px-5 py-3 text-muted">Error (file not found, unreadable, etc.)</td>
-            </tr>
+          <tbody class="divide-y divide-char-600/40 dark:divide-char-600/60">
+            <tr><td class="px-5 py-3 ok w-14">0</td><td class="px-5 py-3 text-stone-500 dark:text-stone-400">all files in sync</td></tr>
+            <tr><td class="px-5 py-3 drift">1</td><td class="px-5 py-3 text-stone-500 dark:text-stone-400">drift detected</td></tr>
+            <tr><td class="px-5 py-3 miss">2</td><td class="px-5 py-3 text-stone-500 dark:text-stone-400">error (file not found, unreadable, etc.)</td></tr>
           </tbody>
         </table>
       </div>
@@ -378,20 +341,19 @@
   </section>
 
   <!-- ── potto callout ── -->
-  <section class="px-4 pb-24">
+  <section class="px-5 pb-28">
     <div class="max-w-3xl mx-auto reveal">
-      <div class="rounded-xl border border-border bg-surface-1 p-6 flex flex-col sm:flex-row gap-4 items-start">
-        <div class="text-3xl shrink-0">🦦</div>
+      <div class="surface border rounded-2xl p-6 sm:p-7 flex flex-col sm:flex-row gap-5 items-start">
+        <div class="text-4xl shrink-0">🦦</div>
         <div>
-          <h3 class="font-semibold mb-1">Also check out potto</h3>
-          <p class="text-muted text-sm leading-relaxed mb-3">
-            potto keeps <code class="font-mono text-snow">.env</code> and <code class="font-mono text-snow">.env.example</code> in sync.
-            Use potto to validate your template, binturong to audit across all environments.
-            They're complementary tools in the same toolkit.
+          <p class="text-xs font-mono uppercase tracking-widest text-stone-500 dark:text-stone-400 mb-1">companion tool</p>
+          <h3 class="font-semibold text-lg mb-2">also check out potto</h3>
+          <p class="text-stone-500 dark:text-stone-400 leading-relaxed mb-3 text-sm">
+            potto keeps <code class="font-mono text-char-800 dark:text-cream-100">.env</code> and <code class="font-mono text-char-800 dark:text-cream-100">.env.example</code> in sync.
+            use potto to validate your template, binturong to audit across environments. complementary tools, same toolkit.
           </p>
-          <a href="https://github.com/iamkorun/potto"
-             target="_blank" rel="noopener"
-             class="inline-flex items-center gap-1.5 text-xs font-mono text-accent hover:underline">
+          <a href="https://github.com/iamkorun/potto" target="_blank" rel="noopener"
+             class="inline-flex items-center gap-1.5 text-xs font-mono text-amber hover:underline">
             github.com/iamkorun/potto →
           </a>
         </div>
@@ -400,62 +362,71 @@
   </section>
 
   <!-- ── Footer ── -->
-  <footer class="border-t border-border px-4 py-10">
-    <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted">
+  <footer class="border-t border-char-600/50 dark:border-char-600/60 px-5 py-12">
+    <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-stone-500 dark:text-stone-400">
       <div class="flex items-center gap-3">
         <span class="font-mono">🐻 binturong</span>
-        <span class="text-surface-5">·</span>
+        <span class="opacity-50">·</span>
         <span>MIT License</span>
+        <span class="opacity-50">·</span>
+        <span>built with 🦀</span>
       </div>
-      <div class="flex items-center gap-4">
-        <a href="https://github.com/iamkorun/binturong" target="_blank" rel="noopener"
-           class="hover:text-snow transition-colors">
-          <img src="https://img.shields.io/github/stars/iamkorun/binturong?style=social" alt="GitHub stars" class="h-5" />
+      <div class="flex items-center gap-3">
+        <a href="https://github.com/iamkorun/binturong" target="_blank" rel="noopener" class="hover:text-amber transition-colors">
+          <img src="https://img.shields.io/github/stars/iamkorun/binturong?style=social" alt="GitHub stars" class="h-5" width="80" height="20" />
         </a>
         <a href="https://buymeacoffee.com/iamkorun" target="_blank" rel="noopener"
-           class="px-3 py-1.5 rounded-lg border border-border hover:border-accent hover:text-accent transition-all text-xs">
+           class="px-3 py-1.5 rounded-lg border border-char-500/60 dark:border-char-600 hover:border-amber hover:text-amber transition-all text-xs font-medium">
           ☕ Buy Me a Coffee
         </a>
       </div>
     </div>
   </footer>
 
+  <div id="toast" class="toast">copied to clipboard</div>
+
   <script>
-    // ── Copy install command ──
-    function copyInstall() {
-      navigator.clipboard.writeText('cargo install binturong').then(() => {
-        const btn = document.getElementById('copy-btn');
-        btn.textContent = 'copied!';
-        btn.classList.add('text-terminal-green', 'border-terminal-green', 'copy-pulse');
-        setTimeout(() => {
-          btn.textContent = 'copy';
-          btn.classList.remove('text-terminal-green', 'border-terminal-green', 'copy-pulse');
-        }, 1800);
-      });
+    // ── Theme toggle ──
+    const root = document.documentElement;
+    const btn = document.getElementById('theme-toggle');
+    const sun = document.getElementById('icon-sun');
+    const moon = document.getElementById('icon-moon');
+    function syncIcons(){
+      const dark = root.classList.contains('dark');
+      sun.classList.toggle('hidden', !dark);   // show sun when dark (to switch to light)
+      moon.classList.toggle('hidden', dark);
+      btn.setAttribute('aria-pressed', dark ? 'true' : 'false');
+    }
+    syncIcons();
+    btn.addEventListener('click', () => {
+      const nowDark = root.classList.toggle('dark');
+      try { localStorage.setItem('forge-theme', nowDark ? 'dark' : 'light'); } catch(_){}
+      syncIcons();
+    });
+
+    // ── Copy install ──
+    function copyInstall(){
+      const cmd = 'cargo install binturong';
+      navigator.clipboard.writeText(cmd).then(() => {
+        const t = document.getElementById('toast');
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 1600);
+      }).catch(()=>{});
     }
 
     // ── Tabs ──
-    function setTab(name, el) {
+    function setTab(name, el){
       document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
-      document.querySelectorAll('.tab-btn').forEach(b => {
-        b.classList.remove('active');
-        b.classList.add('bg-surface-2', 'border', 'border-border', 'text-muted');
-      });
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       document.getElementById('tab-' + name).classList.remove('hidden');
       el.classList.add('active');
-      el.classList.remove('bg-surface-2', 'border', 'border-border', 'text-muted');
     }
 
     // ── Scroll reveal ──
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
-        }
-      });
-    }, { threshold: 0.1 });
-
-    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting){ e.target.classList.add('visible'); obs.unobserve(e.target); } });
+    }, { threshold: 0.12 });
+    document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
   </script>
 </body>
 </html>
