@@ -12,12 +12,18 @@
   <meta property="og:description" content="Lay every .env file side-by-side in one matrix. Spot missing keys, empty values, silent drift. CI-friendly. Zero runtime." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://iamkorun.github.io/binturong" />
-  <meta property="og:image" content="https://iamkorun.github.io/binturong/og.png" />
+  <meta property="og:image" content="https://iamkorun.github.io/binturong/og.jpg" />
+  <meta property="og:image:type" content="image/jpeg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="binturong landing page showing the tagline 'sniff out .env drift before it bites production' above the cargo install command" />
+  <meta property="og:site_name" content="binturong" />
 
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="🐻 binturong — sniff out .env drift before it bites" />
   <meta name="twitter:description" content="Lay every .env file side-by-side in one matrix. Spot drift before production does." />
-  <meta name="twitter:image" content="https://iamkorun.github.io/binturong/og.png" />
+  <meta name="twitter:image" content="https://iamkorun.github.io/binturong/og.jpg" />
+  <meta name="twitter:image:alt" content="binturong landing page hero with the cargo install command" />
 
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%90%BB%3C/text%3E%3C/svg%3E" />
 
@@ -35,31 +41,10 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" />
-  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 
-  <script src="https://cdn.tailwindcss.com/3.4.16"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            char: { 900:'#14120E', 800:'#1C1A17', 700:'#25221D', 600:'#2F2B25', 500:'#3C372F' },
-            cream:{ 50:'#FFFBF5', 100:'#FAF6EF', 200:'#F1EBDF', 300:'#E5DDCD' },
-            amber:{ DEFAULT:'#E4A43A', hi:'#F2B347', lo:'#B87E1C' },
-            sage: '#7A8F5E',
-            rust: '#C3553A',
-            stone:{ 400:'#A39A8A', 500:'#7D7568', 600:'#5C564B' },
-          },
-          fontFamily: {
-            sans: ['Geist', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-            mono: ['"Geist Mono"', 'ui-monospace', 'JetBrains Mono', 'monospace'],
-          },
-        },
-      },
-    }
-  </script>
+  <link rel="stylesheet" href="./style.css" />
   <style>
     :root { color-scheme: dark light; }
     html, body { font-feature-settings: "ss01","cv11"; }
@@ -118,12 +103,17 @@
     .tab-btn.active { background:#E4A43A; color:#1C1A17; border-color:#E4A43A; }
     html:not(.dark) .tab-btn.active { background:#E4A43A; color:#1C1A17; }
 
-    .ok      { color:#7A8F5E; }
-    .drift   { color:#E4A43A; }
-    .miss    { color:#C3553A; }
-    .empty   { color:#7D7568; }
-    .rule    { color:#3C372F; }
-    html:not(.dark) .rule { color:#C9BEA6; }
+    /* Terminal token colors — tuned for AA contrast on both backgrounds. */
+    .ok      { color:#A6C28C; }
+    .drift   { color:#F2B347; }
+    .miss    { color:#E47358; }
+    .empty   { color:#B8AE9D; }
+    .rule    { color:#5C564B; }
+    html:not(.dark) .ok    { color:#5A7341; }
+    html:not(.dark) .drift { color:#8E5B12; }
+    html:not(.dark) .miss  { color:#9A3825; }
+    html:not(.dark) .empty { color:#6B6457; }
+    html:not(.dark) .rule  { color:#A89E89; }
 
     .toast {
       position:fixed; left:50%; bottom:28px; transform:translateX(-50%) translateY(20px);
@@ -180,7 +170,6 @@
 
       <!-- Install pill (HERO ANCHOR) -->
       <button id="install-pill" type="button" data-command="cargo install binturong"
-              aria-label="copy install command: cargo install binturong"
               class="install-pill group max-w-xl w-full mx-auto min-h-[64px] rounded-2xl px-5 sm:px-7 py-5 flex items-center justify-between gap-4 text-left cursor-pointer active:scale-[0.98] transition-transform">
         <div class="flex items-center gap-3 min-w-0">
           <span class="font-mono text-amber text-sm shrink-0 select-none" aria-hidden="true">$</span>
@@ -192,7 +181,7 @@
         </span>
       </button>
       <p class="text-xs text-stone-500 dark:text-stone-400 mt-4">
-        needs <a href="https://rustup.rs" target="_blank" class="text-amber hover:underline">Rust</a>
+        needs <a href="https://rustup.rs" target="_blank" rel="noopener" class="text-amber underline decoration-amber/60 underline-offset-4 hover:decoration-amber">Rust</a>
         · single binary · no runtime · zero config
       </p>
 
@@ -238,7 +227,7 @@
 <span class="rule">│</span> <span class="drift font-semibold">STRIPE_SECRET_KEY  </span> <span class="rule">│</span> <span class="drift">✓ ****  </span> <span class="rule">│</span> <span class="empty">○ (empty)   </span> <span class="rule">│</span> <span class="drift">✓ ****            </span> <span class="rule">│</span>
 <span class="rule">└─────────────────────┴──────────┴──────────────┴────────────────────┘</span>
 
-<span class="miss font-bold">✗</span> <span class="term-snow text-cream-100 dark:text-cream-100">3 of 5 keys drifted across 3 files</span>
+<span class="miss font-semibold">✗</span> <span class="term-snow text-cream-100 dark:text-cream-100">3 of 5 keys drifted across 3 files</span>
 <span class="term-sub text-stone-500 dark:text-stone-400">→ pass --values to inspect drifted values (masked by default)</span>
         </div>
       </div>
