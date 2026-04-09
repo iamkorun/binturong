@@ -179,15 +179,16 @@
       </p>
 
       <!-- Install pill (HERO ANCHOR) -->
-      <button id="install-pill" onclick="copyInstall()"
-              class="install-pill group max-w-xl w-full mx-auto rounded-2xl px-5 sm:px-7 py-5 flex items-center justify-between gap-4 text-left cursor-pointer active:scale-[0.98] transition-transform">
+      <button id="install-pill" type="button" data-command="cargo install binturong"
+              aria-label="copy install command: cargo install binturong"
+              class="install-pill group max-w-xl w-full mx-auto min-h-[64px] rounded-2xl px-5 sm:px-7 py-5 flex items-center justify-between gap-4 text-left cursor-pointer active:scale-[0.98] transition-transform">
         <div class="flex items-center gap-3 min-w-0">
-          <span class="font-mono text-amber text-sm shrink-0 select-none">$</span>
+          <span class="font-mono text-amber text-sm shrink-0 select-none" aria-hidden="true">$</span>
           <span class="font-mono text-char-800 dark:text-cream-100 text-base sm:text-xl truncate">cargo install binturong</span>
         </div>
-        <span class="shrink-0 flex items-center gap-2 px-3 py-2 rounded-lg border border-char-500/60 dark:border-char-600 text-xs font-mono text-stone-500 dark:text-stone-400 group-hover:border-amber group-hover:text-amber transition-colors">
-          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-          copy
+        <span id="copy-badge" class="shrink-0 flex items-center gap-2 px-3 py-2 rounded-lg border border-char-500/60 dark:border-char-600 text-xs font-mono text-stone-500 dark:text-stone-400 group-hover:border-amber group-hover:text-amber transition-colors">
+          <svg id="copy-icon" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          <span id="copy-label">copy</span>
         </span>
       </button>
       <p class="text-xs text-stone-500 dark:text-stone-400 mt-4">
@@ -386,7 +387,7 @@
     </div>
   </footer>
 
-  <div id="toast" class="toast">copied to clipboard</div>
+  <div id="toast" class="toast" role="status" aria-live="polite">copied to clipboard</div>
 
   <script>
     // ── Theme toggle ──
@@ -408,14 +409,55 @@
     });
 
     // ── Copy install ──
-    function copyInstall(){
-      const cmd = 'cargo install binturong';
-      navigator.clipboard.writeText(cmd).then(() => {
-        const t = document.getElementById('toast');
-        t.classList.add('show');
-        setTimeout(() => t.classList.remove('show'), 1600);
-      }).catch(()=>{});
+    const installPill = document.getElementById('install-pill');
+    const copyLabel = document.getElementById('copy-label');
+    const toast = document.getElementById('toast');
+    let toastTimer;
+
+    function showToast(msg){
+      toast.textContent = msg;
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove('show'), 1800);
     }
+
+    function fallbackCopy(text){
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      let ok = false;
+      try { ok = document.execCommand('copy'); } catch(_){}
+      document.body.removeChild(ta);
+      return ok;
+    }
+
+    async function copyInstall(){
+      const cmd = installPill.dataset.command;
+      let ok = false;
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(cmd);
+          ok = true;
+        } else {
+          ok = fallbackCopy(cmd);
+        }
+      } catch(_){
+        ok = fallbackCopy(cmd);
+      }
+      if (ok) {
+        copyLabel.textContent = 'copied';
+        showToast('copied: ' + cmd);
+        setTimeout(() => { copyLabel.textContent = 'copy'; }, 1800);
+      } else {
+        showToast('copy failed — select manually');
+      }
+    }
+
+    installPill.addEventListener('click', copyInstall);
 
     // ── Tabs ──
     function setTab(name, el){
